@@ -15,4 +15,5 @@ Projekt jest niedokonczony. Nie bylem dyspozycyjny przez caly tydzien i nie star
 Do zrobienia caly algorytm obliczajacy dzialanie programu (ruch jednostek, budowa, atak, ogolnie cala symulacja rozgrywki).
 W klasie Game rowniez do dokonczenia funkcja generujaca plik z rozkazami.
 
+## Mediator
 Dodatkowo wrzucam plik mainMediator.cpp przez ktorego odpalalem program player do testow.
