@@ -2,15 +2,16 @@
 
 Projekt jest niedokonczony. Nie bylem dyspozycyjny przez caly tydzien i nie starczylo mi czasu. 
 
-Glowny zarys:
-The project focuses on sorting movies based on their rankings (rating from 1 to 10) using three sorting algorithms: 
- - merge sort
- - quick sort 
- - bucket sort
+## Glowny zarys: 
+ - interfejsem jest klasa Entity. Dziedzicza po niej wszystkie klasy stworzone na podobienstwo typu jednostki oprocz Bazy
+ - Baza nie dziedziczy po Entity 
+ - Glowna klasa dowodzącą jest klasa Game
+ - W klasie game wczytujemy mape z pliku
+ - W klasie game na podstawie pliku status.txt tworzymy jednostki
+ - W klasie game tworzymy plik rozkazy.txt
+ - W klasie game posiadamy instancje klasy "Base" oraz vector<Entity*> (wszystkie jednostki w jednym vectorze)
  
-
-Dodatkowo glowna klasa ktora posiada w sobie vector<Entity*> (czyli cale nasze wojsko) jak i instacje klasy Base to klasa Game.
-W niej sa zawarte wszystkie metody dotyczace wczytania mapy, wczytania statusu gry i generowania rozkazow.
+## Do zrobienia
 Do zrobienia caly algorytm obliczajacy dzialanie programu (ruch jednostek, budowa, atak, ogolnie cala symulacja rozgrywki).
 W klasie Game rowniez do dokonczenia funkcja generujaca plik z rozkazami.
 
