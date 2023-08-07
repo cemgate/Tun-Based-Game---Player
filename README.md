@@ -3,9 +3,9 @@
 Projekt jest niedokonczony. Nie bylem dyspozycyjny przez caly tydzien i nie starczylo mi czasu. 
 
 Glowny zarys:
- -Interfejs to klasa Entity
- -Klasy dziedziczace po Entity to wszystkie jednostki mozliwe do wybudowania w grze oprocz Base
- -Base nie dziedziczy po Entity
+ - Interfejs to klasa Entity
+ - Klasy dziedziczace po Entity to wszystkie jednostki mozliwe do wybudowania w grze oprocz Base
+ - Base nie dziedziczy po Entity
 
 Dodatkowo glowna klasa ktora posiada w sobie vector<Entity*> (czyli cale nasze wojsko) jak i instacje klasy Base to klasa Game.
 W niej sa zawarte wszystkie metody dotyczace wczytania mapy, wczytania statusu gry i generowania rozkazow.
