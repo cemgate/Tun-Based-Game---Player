@@ -3,11 +3,17 @@
 Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.cpp w folderze Mediator. (linijka 10-15)
 
 Instrukcja jak zbudować:
+
 1.Nalezy wejsc do folderu Player/build i wpisac komende "cmake .."
+
 2.Nastepnie wpisac komende "make"
+
 3.Skopiować sciezke do pliku wykonawczego "./Player" i umiescic w linijce 10 pliku main.cpp w folderze Mediator.
+
 3.Kolejne przejsc do folderu Mediator/build i wpisac komende "cmake .."
+
 4.Nastepnie wpisac komende "make".
+
 5.Odpalenie programu poprzez wpisanie "./Mediator"
 
 ## Player 
