@@ -31,6 +31,21 @@ int Catapult::getBuyPrice()
 	return this->price;
 }
 
+int Catapult::getEntityUniqueID()
+{
+	return this->uniqueID;
+}
+
+int Catapult::getPosX()
+{
+	return this->position.x;
+}
+
+int Catapult::getPosY()
+{
+	return this->position.y;
+}
+
 void Catapult::setHealth(int health)
 {
 	this->health = health;
@@ -40,6 +55,11 @@ void Catapult::setPosition(int posX, int posY)
 {
 	this->position.x = posX;
 	this->position.y = posY;
+}
+
+void Catapult::setEntityUniqueID(int ID)
+{
+	this->uniqueID = ID;
 }
 
 void Catapult::takeDamage(int damage)

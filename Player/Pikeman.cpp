@@ -31,6 +31,21 @@ int Pikeman::getBuyPrice()
 	return this->price;
 }
 
+int Pikeman::getEntityUniqueID()
+{
+	return this->uniqueID;
+}
+
+int Pikeman::getPosX()
+{
+	return this->position.x;
+}
+
+int Pikeman::getPosY()
+{
+	return this->position.y;
+}
+
 void Pikeman::setHealth(int health)
 {
 	this->health = health;
@@ -40,6 +55,11 @@ void Pikeman::setPosition(int posX, int posY)
 {
 	this->position.x = posX;
 	this->position.y = posY;
+}
+
+void Pikeman::setEntityUniqueID(int ID)
+{
+	this->uniqueID = ID;
 }
 
 void Pikeman::takeDamage(int damage)

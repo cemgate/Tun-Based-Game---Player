@@ -6,22 +6,31 @@ class Base
 public:
 
 	long getGold();
-	long setGold(long gold);
 	int getHealth();
-	int setHealth(int health);
-	void takeDamage(int damage);
-	void setPosition(int x,int y);
+	int getBaseUniqueID();
+	int getBasePosX();
+	int getBasePosY();
+
+	void setGold(long gold);
+	void setHealth(int health);
+	void setPosition(int x, int y);
 	void setBuildStatus(char entityType);
-	void buildEntity(char entityType);
+	void setBaseUniqueID(int ID);
+
+	void takeDamage(int damage);
+	void entityCostOfPurchase(int cost);
 	bool isAlive();
+	bool isReadyToBuy(int cost);
+	bool isReadyToBuild();
 	~Base() {};
 
 private:
 
+	int baseUniqueID=-1;
 	long gold;
 	int health;	
 	Vector2f position;
-	bool isBuildingEntity=false;
+	bool isReadyToBuildEntity=true;
 	char buildingEntity;
 };
 

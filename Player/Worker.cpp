@@ -31,6 +31,21 @@ int Worker::getBuyPrice()
 	return this->price;
 }
 
+int Worker::getEntityUniqueID()
+{
+	return this->uniqueID;
+}
+
+int Worker::getPosX()
+{
+	return 0;
+}
+
+int Worker::getPosY()
+{
+	return 0;
+}
+
 void Worker::setHealth(int health)
 {
 	this->health = health;
@@ -40,6 +55,11 @@ void Worker::setPosition(int posX, int posY)
 {
 	this->position.x = posX;
 	this->position.y = posY;
+}
+
+void Worker::setEntityUniqueID(int ID)
+{
+	this->uniqueID = ID;
 }
 
 void Worker::takeDamage(int damage)

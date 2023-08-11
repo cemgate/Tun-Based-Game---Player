@@ -31,6 +31,21 @@ int Archer::getBuyPrice()
 	return this->price;
 }
 
+int Archer::getEntityUniqueID()
+{
+	return this->uniqueID;
+}
+
+int Archer::getPosX()
+{
+	return this->position.x;
+}
+
+int Archer::getPosY()
+{
+	return this->position.y;
+}
+
 void Archer::setHealth(int health)
 {
 	this->health = health;
@@ -40,6 +55,11 @@ void Archer::setPosition(int posX, int posY)
 {
 	this->position.x = posX;
 	this->position.y = posY;
+}
+
+void Archer::setEntityUniqueID(int ID)
+{
+	this->uniqueID = ID;
 }
 
 void Archer::takeDamage(int damage)

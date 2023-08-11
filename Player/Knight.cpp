@@ -31,6 +31,37 @@ int Knight::getBuyPrice()
 	return this->price;
 }
 
+int Knight::getEntityUniqueID()
+{
+	return this->uniqueID;
+}
+
+int Knight::getPosX()
+{
+	return this->position.x;
+}
+
+int Knight::getPosY()
+{
+	return this->position.y;
+}
+
+void Knight::setHealth(int health)
+{
+	this->health = health;
+}
+
+void Knight::setPosition(int posX, int posY)
+{
+	this->position.x = posX;
+	this->position.y = posY;
+}
+
+void Knight::setEntityUniqueID(int ID)
+{
+	this->uniqueID = ID;
+}
+
 void Knight::takeDamage(int damage)
 {
 	this->health -= damage;

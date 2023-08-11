@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.h"
+
 class Catapult : public Entity
 {
 public:
@@ -9,9 +10,13 @@ public:
 	int getAttackRange() override;
 	int getBuildTime() override;
 	int getBuyPrice() override;
+	int getEntityUniqueID() override;
+	int getPosX() override;
+	int getPosY() override;
 
 	void setHealth(int health) override;
 	void setPosition(int posX, int posY) override;
+	void setEntityUniqueID(int ID) override;
 
 	void attack(Entity* target) override;
 	void takeDamage(int damage) override;
@@ -20,6 +25,7 @@ public:
 
 private:
 
+	int uniqueID;
 	int health;
 	Vector2f position;
 	const int movementSpeed = 2;

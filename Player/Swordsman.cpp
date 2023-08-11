@@ -31,6 +31,21 @@ int Swordsman::getBuyPrice()
 	return this->price;
 }
 
+int Swordsman::getEntityUniqueID()
+{
+	return this->uniqueID;
+}
+
+int Swordsman::getPosX()
+{
+	return this->position.x;
+}
+
+int Swordsman::getPosY()
+{
+	return this->position.y;
+}
+
 void Swordsman::setHealth(int health)
 {
 	this->health = health;
@@ -40,6 +55,11 @@ void Swordsman::setPosition(int posX, int posY)
 {
 	this->position.x = posX;
 	this->position.y = posY;
+}
+
+void Swordsman::setEntityUniqueID(int ID)
+{
+	this->uniqueID = ID;
 }
 
 void Swordsman::takeDamage(int damage)
