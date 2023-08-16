@@ -7,27 +7,29 @@
 #include <fstream>
 #include <sstream>
 
-std::string program = "C:\\Users\\marci\\OneDrive\\Pulpit\\c++\\Player\\x64\\Debug\\Player.exe";
-std::string mapa = "C:\\Users\\marci\\OneDrive\\Pulpit\\mapa.txt";
-std::string status = "C:\\Users\\marci\\OneDrive\\Pulpit\\status.txt";
-std::string rozkazy = "C:\\Users\\marci\\OneDrive\\Pulpit\\rozkazy.txt";
+std::string program = "MIEJSCE PLIKU NA KOMPUTERZE";
+std::string mapa = "MIEJSCE PLIKU NA KOMPUTERZE";
+std::string status = "MIEJSCE PLIKU NA KOMPUTERZE";
+std::string rozkazy = "MIEJSCE PLIKU NA KOMPUTERZE";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
-
-
-
-
+int goldPlayer1 = 2000;
+int goldPlayer2 = 2000;
 
 std::map<int, int> occupiedID;
+
 std::pair<int, int> basePlayer1Position;
 std::pair<int, int> basePlayer2Position;
+
 std::pair<int, char> basePlayer1IDandCharType;
 std::pair<int, char> basePlayer2IDandCharType;
+
 std::pair<int, int> playersBuildTime;
-std::pair<int, int> playersBuilingEntityType;
-std::pair<int, int> playersBaseHp = { 100,100 };
-std::pair<int, int> playerStartedGold = { 2000,2000 };
+std::pair<bool, bool> playerIsBuilding = { false,false };
+std::pair<char, char> playersBuildingEntityType;
+std::pair<int, int> playersBaseHp;
+
 
 std::unordered_map<char, int> entityBirthHealth =
 {
@@ -62,24 +64,36 @@ std::unordered_map<char, int> entityBuildTime =
 	{'W', 2},
 };
 
+std::unordered_map<char, int> entityCost =
+{
+	{'K', 400},
+	{'S', 250},
+	{'A', 250},
+	{'P', 200},
+	{'R', 500},
+	{'C', 800},
+	{'W', 100},
+};
+
+
 void addNewEntityToStatus(std::string newEntityLine);
-void cleanOrders();
-void firstReadFile();
+void cleanOrdersOrStatus(const std::string& file);
 void readOrders();
+void generateFirstStatus();
 void changeBuildStatus(int baseID, char buildEntityType);
 void moveEntity(int ID, int posX, int posY);
 void attackBase(int damage, int attackedBaseID);
 bool checkWin(int damage, int IDbaseToLose);
 int creatorID();
+void updateBuilding();
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID);
+void rewriteStatusToOppositePlayer(int goldLineToChange);
 void all();
 
 
-
-
-
+//Zrobione
 void addNewEntityToStatus(std::string newEntityLine)
 {
-
 	std::ofstream outputFile(status, std::ios::app);
 
 	if (!outputFile)
@@ -94,54 +108,79 @@ void addNewEntityToStatus(std::string newEntityLine)
 
 }
 
-void firstReadFile()
+//zrobione
+void readMap()
 {
-	std::ifstream statusFile(status);
-	
-	if (!statusFile.is_open())
-	{
-		std::cout << "Unable to open the file" << '\n';
-	}
+	std::ifstream mapFile(mapa);
 
 	std::string line;
-	std::string tmpOrderLine;
+	int rowCount = 0;  // Licznik spacji
+	int columnCount = 0;
 
-
-	int ID=0;
-	char charTypePlayer, charBase,buildingEntity;
-	int intValue1, intValue2,intValue3,intValue4;
-	int counter = 0;
-
-	while (std::getline(statusFile, line) && counter<=2)
+	while (std::getline(mapFile, line))
 	{
-		std::string tmpline;
-		std::istringstream iss(line);
-		if(counter==1)
+		for (char c : line)
 		{
-			iss >> charTypePlayer >> charBase >> intValue1 >> intValue2 >> intValue3 >> intValue4 >>buildingEntity;
-			basePlayer1IDandCharType.first = intValue1;
-			basePlayer1IDandCharType.second = charTypePlayer;
-			occupiedID[basePlayer1IDandCharType.first] = basePlayer1IDandCharType.first;
-		}
-		if (counter == 2)
-		{
-			iss >> charTypePlayer >> charBase >> intValue1 >> intValue2 >> intValue3 >> intValue4;
-			basePlayer2IDandCharType.first = intValue1;
-			basePlayer2IDandCharType.second = charTypePlayer;
-			occupiedID[basePlayer2IDandCharType.first] = basePlayer2IDandCharType.first;
+			if (c == '1')
+			{
+				basePlayer1Position.first = rowCount;
+				basePlayer1Position.second = columnCount;
+			}
+
+			if (c == '2')
+			{
+				basePlayer2Position.first = rowCount;
+				basePlayer2Position.second = columnCount;
+			}
+
+			columnCount++;
 		}
 
-		counter++;
+		columnCount = 0;
+		rowCount++;
 	}
-
-	statusFile.close();
 }
 
-void cleanOrders()
+//Zrobione
+void generateFirstStatus()
 {
-	std::ofstream outputFile(rozkazy, std::ios::trunc); // Otwórz plik w trybie wyczyszczenia
+	readMap();
+	std::ofstream outputFile(status, std::ios::app);
 
-	if (!outputFile.is_open()) 
+	std::string firstBaseStatus = "P B 10 " + std::to_string(basePlayer1Position.first) + " " + std::to_string(basePlayer1Position.second) + " 100 0";
+	std::string secondBaseStatus = "E B 12 " + std::to_string(basePlayer2Position.first) + " " + std::to_string(basePlayer2Position.second) + " 100 0";
+
+	basePlayer1IDandCharType.first = 10;
+	basePlayer1IDandCharType.second = 'P';
+
+	basePlayer2IDandCharType.first = 12;
+	basePlayer2IDandCharType.second = 'E';
+
+	playersBaseHp.first = 100;
+	playersBaseHp.second = 100;
+
+	occupiedID[10] = 10;
+	occupiedID[12] = 12;
+
+	if (!outputFile)
+	{
+		std::cerr << "Nie można otworzyć pliku." << std::endl;
+		exit(0);
+	}
+
+	outputFile << goldPlayer1 << std::endl;
+	outputFile << firstBaseStatus << std::endl;
+	outputFile << secondBaseStatus << std::endl;
+
+	outputFile.close();
+}
+
+//ZROBIONE
+void cleanOrdersOrStatus(const std::string& file)
+{
+	std::ofstream outputFile(file, std::ios::trunc); // Otwórz plik w trybie wyczyszczenia
+
+	if (!outputFile.is_open())
 	{
 		std::cerr << "Could not open the file." << std::endl;
 	}
@@ -151,9 +190,9 @@ void cleanOrders()
 	outputFile.close();
 }
 
+//zrobione
 void readOrders()
 {
-	
 	std::ifstream ordersFile(rozkazy);
 
 	if (!ordersFile.is_open())
@@ -165,70 +204,89 @@ void readOrders()
 	std::string tmpOrderLine;
 
 
-	int ID;
-	char charValue1, charValue2=0;
-	int int1Value, int2Value;
+	int baseID = 0;
+	char actionType = ' ', entityTypeToBuildOrBuy = ' ';
+	int attackingEntityID = 0, moveX = 0, moveY = 0;
+	int attackedBaseID = 0;
+	int totaldmg = 0;
+	int damagedBase = 0;
 
 	while (std::getline(ordersFile, line))
 	{
-		int totaldmg=0;
-		int damagedBase = 0;
-		std::istringstream iss(line);
-		
+		std::istringstream issMove(line);
+		std::istringstream issBuyBuild(line);
+		std::istringstream  issAttack(line);
 
-		if(sscanf_s(line.c_str(), "%d %c %d %d", &ID, &charValue1, &int1Value,&int2Value)==4)//poruszanie jednostka
+
+		if (issMove >> baseID >> actionType >> moveX >> moveY) // poruszanie jednostka  
 		{
-			moveEntity(ID, int1Value, int2Value);
+			moveEntity(baseID, moveX, moveY);
+			continue;
 		}
 
-		else if (iss >> ID >> charValue1 >> charValue2) //Budowanie lub kupowanie jednostki
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedBaseID, attackingEntityID);
+
+		if (issBuyBuild >> baseID >> actionType >> entityTypeToBuildOrBuy) //Budowanie lub kupowanie jednostki
 		{
-			std::cout << charValue1;
-			if (charValue1 == 'P')
+
+			if (actionType == 'P')
 			{
-				std::cout << "siemanko" << '\n';
 				std::string tmpStatusLine;
 				int tmpID = creatorID();
-			
-				if (basePlayer1IDandCharType.first == ID)
-				{
-					tmpStatusLine = basePlayer1IDandCharType.second;
-					
 
-					std::cout << tmpStatusLine;
+				if (basePlayer1IDandCharType.first == baseID)
+				{
+					goldPlayer1 -= entityCost[entityTypeToBuildOrBuy];
+					tmpStatusLine = std::string(1, basePlayer1IDandCharType.second) + " "
+						+ std::string(1, entityTypeToBuildOrBuy) + " "
+						+ std::to_string(tmpID) + " "
+						+ std::to_string(basePlayer1Position.first) + " "
+						+ std::to_string(basePlayer1Position.second) + " "
+						+ std::to_string(entityBirthHealth[entityTypeToBuildOrBuy]);
+
 					addNewEntityToStatus(tmpStatusLine);
+					continue;
 				}
+
 				else
 				{
-					tmpStatusLine = basePlayer2IDandCharType.second + " "
-						+ std::to_string(charValue2) + " "
+					goldPlayer2 -= entityCost[entityTypeToBuildOrBuy];
+					tmpStatusLine = std::string(1, basePlayer2IDandCharType.second) + " "
+						+ std::string(1, entityTypeToBuildOrBuy) + " "
 						+ std::to_string(tmpID) + " "
 						+ std::to_string(basePlayer2Position.first) + " "
 						+ std::to_string(basePlayer2Position.second) + " "
-						+ std::to_string(entityBirthHealth[charValue2]);
-					
+						+ std::to_string(entityBirthHealth[entityTypeToBuildOrBuy]);
+
 					addNewEntityToStatus(tmpStatusLine);
+					continue;
 				}
 			}
 
-			else if (charValue1 == 'B')
+			if (actionType == 'B')
 			{
-				
-				if (basePlayer1IDandCharType.first == ID)
+
+				std::cout << "BUDUJEMY\n";
+				if (basePlayer1IDandCharType.first == baseID)
 				{
-					changeBuildStatus(basePlayer1IDandCharType.first, charValue2);
+					changeBuildStatus(basePlayer1IDandCharType.first, entityTypeToBuildOrBuy);
+					continue;
 				}
 				else
 				{
-					changeBuildStatus(basePlayer1IDandCharType.second, charValue2);
+					changeBuildStatus(basePlayer2IDandCharType.first, entityTypeToBuildOrBuy);
+					continue;
 				}
 			}
+
 		}
-		else if(sscanf_s(line.c_str(), "%d %c %d", &ID, &charValue1, &int1Value) == 3) //zadawanie dmg bazie
+
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedBaseID, attackingEntityID);
+
+		if (issAttack >> attackingEntityID >> actionType >> attackedBaseID) //zadawanie dmg bazie
 		{
-			
-			totaldmg += damageFromEntity[charValue1];
-			damagedBase = ID;
+			totaldmg += damageFromEntity[actionType];
+			damagedBase = attackedBaseID;
 		}
 
 		else
@@ -236,26 +294,65 @@ void readOrders()
 			// Niepowodzenie w odczycie, nieznany format linii
 			std::cerr << "Nieznany format linii: " << line << std::endl;
 		}
+	}
 
-
-		if (totaldmg > 0)
-		{
-			checkWin(totaldmg, damagedBase);
-			attackBase(totaldmg, damagedBase);
-		}
-
-
+	if (totaldmg > 0)
+	{
+		attackBase(totaldmg, attackedBaseID);
 	}
 
 	ordersFile.close();
 }
 
+//zrobione
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID)
+{
+	baseID = 0;
+	actionType = ' ';
+	entityTypeToBuildOrBuy = ' ';
+	moveX = 0;
+	moveY = 0;
+	attackedBaseID = 0;
+	attackedEntityID = 0;
+}
+
+//zrobione
 void changeBuildStatus(int baseID, char buildEntityType)
 {
+	if (basePlayer1IDandCharType.first == baseID)
+	{
+		playersBuildTime.first = entityBuildTime[buildEntityType];
+		playersBuildingEntityType.first = buildEntityType;
+
+		if (buildEntityType != '0')
+		{
+			playerIsBuilding.first = true;
+		}
+		else
+		{
+			playerIsBuilding.first = false;
+		}
+	}
+	else
+	{
+		playersBuildTime.second = entityBuildTime[buildEntityType];
+		playersBuildingEntityType.second = buildEntityType;
+
+		if (buildEntityType != '0')
+		{
+			playerIsBuilding.second = true;
+		}
+		else
+		{
+			playerIsBuilding.second = false;
+		}
+	}
+
 	std::ifstream inputFile(status);
 	std::vector<std::string> lines;
 
-	if (!inputFile.is_open()) {
+	if (!inputFile.is_open())
+	{
 		std::cerr << "Could not open the file." << std::endl;
 		return exit(0);
 	}
@@ -267,12 +364,25 @@ void changeBuildStatus(int baseID, char buildEntityType)
 		int tmpID, tmpposx, tmpposy, health;
 		char whichPlayerbase, entityType, entityBuilding;
 		std::istringstream iss(line);
-		iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding;
 
-		if ((iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding) && tmpID == baseID)
+
+		if (iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding)
 		{
-			std::string damageBase = std::to_string(whichPlayerbase) + " " + std::to_string(entityType) + " " + std::to_string(tmpID) + " " + std::to_string(tmpposx) + " " + std::to_string(tmpposy) + " " + std::to_string(health) + " " + std::to_string(buildEntityType);
-			lines.push_back(damageBase);
+			if (tmpID == baseID)
+			{
+				std::string baseLine = std::string(1, whichPlayerbase) + " "
+					+ std::string(1, entityType) + " "
+					+ std::to_string(tmpID) + " "
+					+ std::to_string(tmpposx) + " "
+					+ std::to_string(tmpposy) + " "
+					+ std::to_string(health) + " "
+					+ std::string(1, buildEntityType);
+				lines.push_back(baseLine);
+			}
+			else
+			{
+				lines.push_back(line);
+			}
 		}
 		else
 		{
@@ -284,7 +394,7 @@ void changeBuildStatus(int baseID, char buildEntityType)
 
 
 	// Zapisanie zmodyfikowanych linii z powrotem do pliku
-	std::ofstream outputFile("output.txt");
+	std::ofstream outputFile(status);
 	if (!outputFile.is_open())
 	{
 		std::cerr << "Could not open the output file." << std::endl;
@@ -298,12 +408,14 @@ void changeBuildStatus(int baseID, char buildEntityType)
 	outputFile.close();
 }
 
+//zrobione
 void moveEntity(int ID, int posX, int posY)
 {
 	std::ifstream inputFile(status);
 	std::vector<std::string> lines;
 
-	if (!inputFile.is_open()) {
+	if (!inputFile.is_open())
+	{
 		std::cerr << "Could not open the file." << std::endl;
 		return exit(0);
 	}
@@ -315,14 +427,17 @@ void moveEntity(int ID, int posX, int posY)
 		int tmpID, tmpposx, tmpposy, health;
 		char whichPlayerbase, entityType;
 		std::istringstream iss(line);
+
+
 		iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health;
 
-		if (tmpID = ID)
+		if (tmpID == ID)
 		{
 			std::string movedEntity;
-			movedEntity = std::to_string(whichPlayerbase) + " " + std::to_string(entityType) + " "  + std::to_string(tmpID) + " " + std::to_string(posX) + " " + std::to_string(posY) + " " + std::to_string(health);
+			movedEntity = std::string(1, whichPlayerbase) + " " + std::string(1, entityType) + " " + std::to_string(tmpID) + " " + std::to_string(posX) + " " + std::to_string(posY) + " " + std::to_string(health);
 			lines.push_back(movedEntity);
 		}
+
 		else
 		{
 			lines.push_back(line);
@@ -330,60 +445,11 @@ void moveEntity(int ID, int posX, int posY)
 	}
 	inputFile.close();
 
-	
-
-	// Zapisanie zmodyfikowanych linii z powrotem do pliku
-	std::ofstream outputFile("output.txt");
-	if (!outputFile.is_open()) 
-	{
-		std::cerr << "Could not open the output file." << std::endl;
-		exit(0);
-	}
-
-	for (const std::string& line : lines) 
-	{
-		outputFile << line << std::endl;
-	}
-	outputFile.close();
-}
-
-void attackBase(int damage, int attackedBaseID)
-{
-	std::ifstream inputFile(status);
-	std::vector<std::string> lines;
-
-	if (!inputFile.is_open()) {
-		std::cerr << "Could not open the file." << std::endl;
-		return exit(0);
-	}
-
-	// Wczytanie linii z pliku do wektora
-	std::string line;
-	while (getline(inputFile, line))
-	{
-		int tmpID, tmpposx, tmpposy, health;
-		char whichPlayerbase, entityType, entityBuilding;
-		std::istringstream iss(line);
-		iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding;
-
-		if ((iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding) && tmpID == attackedBaseID)
-		{
-			std::string damageBase = std::to_string(whichPlayerbase) + " " + std::to_string(entityType) + " " + std::to_string(tmpID) + " " + std::to_string(tmpposx) + " " + std::to_string(tmpposy) + " " + std::to_string(health - damage) + " " + std::to_string(entityBuilding);
-			lines.push_back(damageBase);
-		}
-		else
-		{
-			lines.push_back(line);
-		}
-	}
-	inputFile.close();
-
-	checkWin(damage, attackedBaseID);
 
 
 
-	// Zapisanie zmodyfikowanych linii z powrotem do pliku
-	std::ofstream outputFile("output.txt");
+	std::ofstream outputFile(status);
+
 	if (!outputFile.is_open())
 	{
 		std::cerr << "Could not open the output file." << std::endl;
@@ -397,9 +463,84 @@ void attackBase(int damage, int attackedBaseID)
 	outputFile.close();
 }
 
+//zrobione
+void attackBase(int damage, int attackedBaseID)
+{
+	if (basePlayer1IDandCharType.first == attackedBaseID)
+	{
+		playersBaseHp.first -= damage;
+	}
+	else
+	{
+		playersBaseHp.second -= damage;
+	}
+
+	std::ifstream inputFile(status);
+	std::vector<std::string> lines;
+
+	if (!inputFile.is_open())
+	{
+		std::cerr << "Could not open the file." << std::endl;
+		return exit(0);
+	}
+
+	// Wczytanie linii z pliku do wektora
+	std::string line;
+	while (getline(inputFile, line))
+	{
+		int tmpID, tmpposx, tmpposy, health;
+		char whichPlayerbase, entityType, entityBuilding;
+		std::istringstream iss(line);
+
+		if (iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding)
+		{
+			if (tmpID == attackedBaseID)
+			{
+				std::string damageBase = std::string(1, whichPlayerbase) + " "
+					+ std::string(1, entityType) + " "
+					+ std::to_string(tmpID) + " "
+					+ std::to_string(tmpposx) + " "
+					+ std::to_string(tmpposy) + " "
+					+ std::to_string(health - damage) + " "
+					+ std::string(1, entityBuilding);
+				lines.push_back(damageBase);
+			}
+
+
+			else
+			{
+				lines.push_back(line);
+			}
+
+
+		}
+		else
+		{
+			lines.push_back(line);
+		}
+	}
+	inputFile.close();
+
+
+	// Zapisanie zmodyfikowanych linii z powrotem do pliku
+	std::ofstream outputFile(status);
+	if (!outputFile.is_open())
+	{
+		std::cerr << "Could not open the output file." << std::endl;
+		exit(0);
+	}
+
+	for (const std::string& line : lines)
+	{
+		outputFile << line << std::endl;
+	}
+	outputFile.close();
+}
+
+//zaraz zrobie xd
 bool checkWin(int damage, int IDbaseToLose)
 {
-	if (basePlayer1IDandCharType.first== IDbaseToLose)
+	if (basePlayer1IDandCharType.first == IDbaseToLose)
 	{
 		playersBaseHp.first -= damage;
 		if (playersBaseHp.first < 0)
@@ -421,6 +562,106 @@ bool checkWin(int damage, int IDbaseToLose)
 	return false;
 }
 
+//zrobione
+void updateBuilding()
+{
+	if (playerIsBuilding.first)
+	{
+		playersBuildTime.first = playersBuildTime.first - 1;
+
+		if (playersBuildTime.first == 0)
+		{
+			std::string newEntity = std::string(1, basePlayer1IDandCharType.second) + " "
+				+ std::string(1, playersBuildingEntityType.first) + " "
+				+ std::to_string(creatorID()) + " "
+				+ std::to_string(basePlayer1Position.first) + " "
+				+ std::to_string(basePlayer1Position.second) + " "
+				+ std::to_string(entityBirthHealth[playersBuildingEntityType.first]);
+
+			addNewEntityToStatus(newEntity);
+			changeBuildStatus(basePlayer1IDandCharType.first, '0');
+			std::cout << "skonczone budowanie dla gracza 1\n";
+			playerIsBuilding.first = false;
+			playersBuildTime.first = 0;
+			playersBuildingEntityType.first = '0';
+		}
+	}
+
+	if (playerIsBuilding.second)
+	{
+		playersBuildTime.second = playersBuildTime.second - 1;
+
+		if (playersBuildTime.second == 0)
+		{
+			std::string newEntity = std::string(1, basePlayer2IDandCharType.second) + " "
+				+ std::string(1, playersBuildingEntityType.second) + " "
+				+ std::to_string(creatorID()) + " "
+				+ std::to_string(basePlayer2Position.first) + " "
+				+ std::to_string(basePlayer2Position.second) + " "
+				+ std::to_string(entityBirthHealth[playersBuildingEntityType.second]);
+
+			addNewEntityToStatus(newEntity);
+			changeBuildStatus(basePlayer2IDandCharType.first, '0');
+			std::cout << "skonczone budowanie dla gracza 2\n";
+			playerIsBuilding.second = false;
+			playersBuildTime.second = 0;
+			playersBuildingEntityType.second = '0';
+		}
+	}
+}
+
+//zrobione
+void rewriteStatusToOppositePlayer(int goldLineToChange)
+{
+	std::ifstream inputFile(status);
+	std::vector<std::string> lines;
+
+	if (!inputFile.is_open())
+	{
+		std::cerr << "Could not open the file." << std::endl;
+		return exit(0);
+	}
+
+	// Wczytanie linii z pliku do wektora
+	std::string line;
+	while (getline(inputFile, line))
+	{
+		int goldToChange;
+		std::istringstream iss(line);
+
+
+		if (iss >> goldToChange)
+		{
+			std::string goldLine = std::to_string(goldLineToChange);	
+			lines.push_back(goldLine);
+		}
+
+		else
+		{
+			lines.push_back(line);
+		}
+
+	}
+	inputFile.close();
+
+
+
+	// Zapisanie zmodyfikowanych linii z powrotem do pliku
+	std::ofstream outputFile(status);
+	if (!outputFile.is_open())
+	{
+		std::cerr << "Could not open the output file." << std::endl;
+		exit(0);
+	}
+
+	for (const std::string& line : lines)
+	{
+		outputFile << line << std::endl;
+	}
+	outputFile.close();
+}
+
+//zrobione
 int creatorID()
 {
 	int newID = 0;
@@ -441,10 +682,20 @@ int creatorID()
 	return newID;
 }
 
-void all()
+void all(int whichPlayerTakesTurn)
 {
 	readOrders();
-	cleanOrders();
+	cleanOrdersOrStatus(rozkazy);
+	updateBuilding();
+
+	if (whichPlayerTakesTurn == 1)
+	{
+		rewriteStatusToOppositePlayer(goldPlayer2);
+	}
+	else
+	{
+		rewriteStatusToOppositePlayer(goldPlayer1);
+	}
 }
 
 
@@ -455,18 +706,23 @@ int main()
 {
 	int turnCounter = 0;
 
+	cleanOrdersOrStatus(rozkazy);
+	cleanOrdersOrStatus(status);
+	generateFirstStatus();
 
-	firstReadFile();
 	std::string commandPlayer1 = program + " " + mapa + " " + status + " " + rozkazy + " " + player1;
 	std::string commandPlayer2 = program + " " + mapa + " " + status + " " + rozkazy + " " + player2;
 
 
-	while (turnCounter < 2)
+	while (turnCounter < 100)
 	{
+		std::cout << "RUCH PLAYER 1\n";
 		system(commandPlayer1.c_str()); //odpalenie tury dla gracza pierwszego   
-		all();
-		system(commandPlayer2.c_str()); //odpalenie tury dla gracza drugiego  
-		all();
+		all(1);
+		system(commandPlayer2.c_str()); //odpalenie tury dla gracza drugiego 
+		std::cout << "RUCH PLAYER 2\n";
+		all(2);
 		turnCounter++;
 	}
+
 }
