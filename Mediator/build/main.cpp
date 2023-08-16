@@ -7,10 +7,13 @@
 #include <fstream>
 #include <sstream>
 
-std::string program = "MIEJSCE PLIKU NA KOMPUTERZE";
-std::string mapa = "MIEJSCE PLIKU NA KOMPUTERZE";
-std::string status = "MIEJSCE PLIKU NA KOMPUTERZE";
-std::string rozkazy = "MIEJSCE PLIKU NA KOMPUTERZE";
+const int MAX_TURNS = 1000;
+
+
+std::string program = "C:\\Users\\marci\\OneDrive\\Pulpit\\c++\\Player\\x64\\Debug\\Player.exe";
+std::string mapa = "C:\\Users\\marci\\OneDrive\\Pulpit\\mapa.txt";
+std::string status = "C:\\Users\\marci\\OneDrive\\Pulpit\\status.txt";
+std::string rozkazy = "C:\\Users\\marci\\OneDrive\\Pulpit\\rozkazy.txt";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
@@ -88,10 +91,10 @@ int creatorID();
 void updateBuilding();
 void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID);
 void rewriteStatusToOppositePlayer(int goldLineToChange);
-void all();
+void allActions();
 
 
-//Zrobione
+
 void addNewEntityToStatus(std::string newEntityLine)
 {
 	std::ofstream outputFile(status, std::ios::app);
@@ -108,7 +111,7 @@ void addNewEntityToStatus(std::string newEntityLine)
 
 }
 
-//zrobione
+
 void readMap()
 {
 	std::ifstream mapFile(mapa);
@@ -141,7 +144,7 @@ void readMap()
 	}
 }
 
-//Zrobione
+
 void generateFirstStatus()
 {
 	readMap();
@@ -175,7 +178,7 @@ void generateFirstStatus()
 	outputFile.close();
 }
 
-//ZROBIONE
+
 void cleanOrdersOrStatus(const std::string& file)
 {
 	std::ofstream outputFile(file, std::ios::trunc); // Otwórz plik w trybie wyczyszczenia
@@ -190,7 +193,7 @@ void cleanOrdersOrStatus(const std::string& file)
 	outputFile.close();
 }
 
-//zrobione
+
 void readOrders()
 {
 	std::ifstream ordersFile(rozkazy);
@@ -304,7 +307,7 @@ void readOrders()
 	ordersFile.close();
 }
 
-//zrobione
+
 void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID)
 {
 	baseID = 0;
@@ -316,7 +319,7 @@ void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int&
 	attackedEntityID = 0;
 }
 
-//zrobione
+
 void changeBuildStatus(int baseID, char buildEntityType)
 {
 	if (basePlayer1IDandCharType.first == baseID)
@@ -408,7 +411,7 @@ void changeBuildStatus(int baseID, char buildEntityType)
 	outputFile.close();
 }
 
-//zrobione
+
 void moveEntity(int ID, int posX, int posY)
 {
 	std::ifstream inputFile(status);
@@ -463,7 +466,7 @@ void moveEntity(int ID, int posX, int posY)
 	outputFile.close();
 }
 
-//zrobione
+
 void attackBase(int damage, int attackedBaseID)
 {
 	if (basePlayer1IDandCharType.first == attackedBaseID)
@@ -537,32 +540,23 @@ void attackBase(int damage, int attackedBaseID)
 	outputFile.close();
 }
 
-//zaraz zrobie xd
-bool checkWin(int damage, int IDbaseToLose)
+
+void checkWin()
 {
-	if (basePlayer1IDandCharType.first == IDbaseToLose)
+	if (playersBaseHp.first < 0)
 	{
-		playersBaseHp.first -= damage;
-		if (playersBaseHp.first < 0)
-		{
-			std::cout << "wygrywa gracz drugi";
-			return true;
-		}
+		std::cout << "Wygrywa gracz drugi poprzez zniszczenie bazy przeciwnika'\n";
+		exit(0);
 	}
 
-	else if (basePlayer1IDandCharType.first == IDbaseToLose)
+	if (playersBaseHp.second < 0)
 	{
-		playersBaseHp.second -= damage;
-		if (playersBaseHp.second < 0)
-		{
-			std::cout << "wygrywa gracz pierwszy";
-			return true;
-		}
+		std::cout << "Wygrywa gracz pierwszy poprzez zniszczenie bazy przeciwnika'\n";
+		exit(0);
 	}
-	return false;
 }
 
-//zrobione
+
 void updateBuilding()
 {
 	if (playerIsBuilding.first)
@@ -610,7 +604,7 @@ void updateBuilding()
 	}
 }
 
-//zrobione
+
 void rewriteStatusToOppositePlayer(int goldLineToChange)
 {
 	std::ifstream inputFile(status);
@@ -632,7 +626,7 @@ void rewriteStatusToOppositePlayer(int goldLineToChange)
 
 		if (iss >> goldToChange)
 		{
-			std::string goldLine = std::to_string(goldLineToChange);	
+			std::string goldLine = std::to_string(goldLineToChange);
 			lines.push_back(goldLine);
 		}
 
@@ -661,7 +655,7 @@ void rewriteStatusToOppositePlayer(int goldLineToChange)
 	outputFile.close();
 }
 
-//zrobione
+
 int creatorID()
 {
 	int newID = 0;
@@ -682,7 +676,8 @@ int creatorID()
 	return newID;
 }
 
-void all(int whichPlayerTakesTurn)
+
+void allActions(int whichPlayerTakesTurn)
 {
 	readOrders();
 	cleanOrdersOrStatus(rozkazy);
@@ -696,8 +691,45 @@ void all(int whichPlayerTakesTurn)
 	{
 		rewriteStatusToOppositePlayer(goldPlayer1);
 	}
+
+	checkWin();
 }
 
+
+void checkWinAfterTurnsEnd()
+{
+	std::ifstream statusFile(status);
+    std::string line;
+
+	int numberOfEnemyOneUnits = 0;
+	int numberOfEnemyTwoUnits = 0;
+
+	while (std::getline(statusFile, line))
+	{
+		if (line[0] == 'P')
+		{
+			numberOfEnemyOneUnits++;
+		}
+
+		if (line[0] == 'E')
+		{
+			numberOfEnemyTwoUnits++;
+		}
+	}
+
+	std::cout << "KONIEC ROZGRYWKI, WYGRA GRACZ Z WIEKSZA ILOSCIA WOJSK!!!!!'\n";
+
+	if (numberOfEnemyOneUnits > numberOfEnemyTwoUnits)
+	{
+		std::cout << "Wygrywa gracz pierwszy ktory zgromadzil: " << numberOfEnemyOneUnits << " liczbe wojsk, gracz drugi posiada: " << numberOfEnemyTwoUnits << " jednostek.'\n";
+		exit(0);
+	}
+	else
+	{
+		std::cout << "Wygrywa gracz drugi ktory zgromadzil: " << numberOfEnemyOneUnits << " liczbe wojsk, gracz pierwszy posiada: " << numberOfEnemyTwoUnits << " jednostek.'\n";
+		exit(0);
+	}
+}
 
 
 
@@ -714,15 +746,17 @@ int main()
 	std::string commandPlayer2 = program + " " + mapa + " " + status + " " + rozkazy + " " + player2;
 
 
-	while (turnCounter < 100)
+	while (turnCounter < MAX_TURNS)
 	{
 		std::cout << "RUCH PLAYER 1\n";
 		system(commandPlayer1.c_str()); //odpalenie tury dla gracza pierwszego   
-		all(1);
+		allActions(1);
 		system(commandPlayer2.c_str()); //odpalenie tury dla gracza drugiego 
 		std::cout << "RUCH PLAYER 2\n";
-		all(2);
+		allActions(2);
 		turnCounter++;
 	}
+
+	checkWinAfterTurnsEnd();
 
 }
