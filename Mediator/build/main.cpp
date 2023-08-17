@@ -269,7 +269,7 @@ void readOrders()
 			if (actionType == 'B')
 			{
 
-				std::cout << "BUDUJEMY\n";
+				
 				if (basePlayer1IDandCharType.first == baseID)
 				{
 					changeBuildStatus(basePlayer1IDandCharType.first, entityTypeToBuildOrBuy);
@@ -574,7 +574,7 @@ void updateBuilding()
 
 			addNewEntityToStatus(newEntity);
 			changeBuildStatus(basePlayer1IDandCharType.first, '0');
-			std::cout << "skonczone budowanie dla gracza 1\n";
+	
 			playerIsBuilding.first = false;
 			playersBuildTime.first = 0;
 			playersBuildingEntityType.first = '0';
@@ -596,7 +596,7 @@ void updateBuilding()
 
 			addNewEntityToStatus(newEntity);
 			changeBuildStatus(basePlayer2IDandCharType.first, '0');
-			std::cout << "skonczone budowanie dla gracza 2\n";
+			
 			playerIsBuilding.second = false;
 			playersBuildTime.second = 0;
 			playersBuildingEntityType.second = '0';
