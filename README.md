@@ -1,3 +1,6 @@
+### FINISH !!!!!
+Wszystko zostalo ukonczone.
+
 # Jak zbudować
 
 Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.cpp w folderze Mediator. (linijka 10-15)
@@ -22,4 +25,10 @@ Wszystkie funkcje z programu player zostaly sprawdzone. Zastosowane zostało uł
 
 ## Mediator
 
-Program mediator miał slużyć za odczytywanie rozkazów, aktualizacje zycia jednostek jak i sprawdzanie warunku wygranej/przegranej przez gracza/przeciwinika. Funkcje zostały zaimplementowane lecz jest tam jeszcze duzo bugów do poprawy. Nie udało mi się zrezalizować programu mediatora do końca. Program Mediatora odpala program gracza, zczytuje rozkazy, lecz przy probie przerobienia rozkazów na nowy status gry (linijki w pliku status.txt) nie moge znalezc na ten momentu bledu przy probie wczytywania linijek. Niezaleznie od danych wejsciowych program raz odczytuje linijke jako bledny format danych (np: poprawny [10,M,12,12] -> jednostka id 10, ruch do pola 12,12 w moim programie co jakis czas takie linijki są traktowane jako bledny format).
+Program mediatora został ukończony. Mediator odpowiada za:
+1. Zaktuzalizowanie poczatkowego pustego pliku status.txt (na podstawie odczytu z mapa.txt wpisuje to status.txt bazowe parametry bazy oraz poczatkowa wartosc golda dla gracza pierwszego = 2000)
+2. Odczytywanie rozkazow i modyfikowanie pliku status.txt
+3. Po kazdym odczytaniu rozkazow od programu Player i wykonaniu wszystkich czynnosci Mediator czysci plik rozkazy
+4. Mediator przygotowuje nowy plik status.txt ktory tak naprawde rozni sie pierwsza linijka w ktorej jest zmieniona wartosc golda na golda gracza drugiego/pierwszego w zaleznosci kogo bedzie nastepna tura.
+5. Mediator sprawdza po kazdym odczytaniu pliku rozkazy.txt oraz zmienieniu statusu czy nastapila wygrana (zycie przeciwnika < 0)
+6. Mediator sprawdza po zakonczeniu maksymalnej ilosci tur (MAX_TURNS=1000) czy nastapila wygrana. Wygrana jest przydzielana na podstawie wiekszej liczby wojska.
