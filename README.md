@@ -1,4 +1,4 @@
-### FINISH !!!!!
+# FINISH !!!!!
 Wszystko zostalo ukonczone.
 
 # Jak zbudować
