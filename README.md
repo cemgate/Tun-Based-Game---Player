@@ -3,7 +3,7 @@ Wszystko zostalo ukonczone.
 
 # Jak zbudować
 
-Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.cpp w folderze Mediator. (linijka 10-15)
+Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.cpp w folderze Mediator. (linijka 13-18)
 
 Instrukcja jak zbudować:
 
