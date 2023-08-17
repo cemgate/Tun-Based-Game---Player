@@ -9,11 +9,11 @@
 
 const int MAX_TURNS = 1000;
 
-
-std::string program = "C:\\Users\\marci\\OneDrive\\Pulpit\\c++\\Player\\x64\\Debug\\Player.exe";
-std::string mapa = "C:\\Users\\marci\\OneDrive\\Pulpit\\mapa.txt";
-std::string status = "C:\\Users\\marci\\OneDrive\\Pulpit\\status.txt";
-std::string rozkazy = "C:\\Users\\marci\\OneDrive\\Pulpit\\rozkazy.txt";
+//DO UZUPELNIENIA!!!!!
+std::string program = "MIEJSCE PLIKU WYKONAWCZEGO";
+std::string mapa = "MIEJSE PLIKU NA KOMPUTERZE";
+std::string status = "MIEJSE PLIKU NA KOMPUTERZE";
+std::string rozkazy = "MIEJSE PLIKU NA KOMPUTERZE";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
