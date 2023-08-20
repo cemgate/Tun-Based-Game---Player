@@ -7,9 +7,8 @@ Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.c
 
 Instrukcja jak zbudować:
 
-1. Nalezy wejsc do folderu Player i wpisac komende ``````python
-def hello_world():
-print("Hello, world!")
+1. Nalezy wejsc do folderu Player i wpisac komende ``````python ```````
+
 ```
 
 3. Nastepnie wpisac komende "make"
