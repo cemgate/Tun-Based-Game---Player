@@ -7,11 +7,14 @@ Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.c
 
 Instrukcja jak zbudować:
 
-1. Nalezy wejsc do folderu Player/build i wpisac komende "cmake .."
+1. Nalezy wejsc do folderu Player i wpisac komende ``````python
+def hello_world():
+print("Hello, world!")
+```
 
-2. Nastepnie wpisac komende "make"
+3. Nastepnie wpisac komende "make"
 
-3. Skopiować sciezke do pliku wykonawczego "./Player" i umiescic w linijce 10 pliku main.cpp w folderze Mediator.
+4. Skopiować sciezke do pliku wykonawczego "./Player" i umiescic w linijce 10 pliku main.cpp w folderze Mediator.
 
 3. Kolejne przejsc do folderu Mediator/build i wpisac komende "cmake .."
 
