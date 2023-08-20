@@ -7,7 +7,7 @@ Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.c
 
 Instrukcja jak zbudować:
 
-1. Nalezy wejsc do folderu Player i wpisac komende ``````python ```````
+1. Nalezy wejsc do folderu Player i wpisac komende ``````c++ ```````
 
 ```
 
