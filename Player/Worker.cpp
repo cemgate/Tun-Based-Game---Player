@@ -3,7 +3,7 @@
 
 char Worker::getClass()
 {
-    return 0;
+    return 'W';
 }
 
 int Worker::getHealth()
@@ -38,12 +38,12 @@ int Worker::getEntityUniqueID()
 
 int Worker::getPosX()
 {
-	return 0;
+	return this->position.x;
 }
 
 int Worker::getPosY()
 {
-	return 0;
+	return this->position.y;
 }
 
 void Worker::setHealth(int health)

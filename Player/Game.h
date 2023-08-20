@@ -157,20 +157,44 @@ public:
 	int creatorID();
 
 	/**
-	 * @brief Calculates the maximum point reachable from a starting point.
-	 * @param startX Starting X-coordinate.
-	 * @param startY Starting Y-coordinate.
-	 * @param maxMoves Maximum number of moves.
-	 * @return Pair of X and Y coordinates representing the reachable point.
-	 */
-	std::pair<int, int> maxDistancePoint(int startX, int startY, int maxMoves);
+     * @brief Find a path using the A* algorithm from the entity's current position to the target position.
+     *
+     * This function uses the A* algorithm to find a path from the entity's current position to the specified target
+     * position. The resulting path is returned as a vector of pairs representing the x and y coordinates of each step
+     * in the path.
+     *
+     * @param entity Pointer to the Entity object for which to find the path.
+     * @param targetX The x-coordinate of the target position.
+     * @param targetY The y-coordinate of the target position.
+     * @return A vector of pairs representing the x and y coordinates of each step in the path from the entity's
+     *         current position to the target position. If no valid path is found, an empty vector is returned.
+     *
+     * @note The map, obstacles, and other relevant data should be accessed through Game object.
+     * @note The returned path does not include the entity's starting position.
+     */
+	std::vector<std::pair<int, int>> Astar(Entity* entity,int targetX, int targetY);
 
 	/**
-	 * @brief Calculates the distance between the enemys's base and an attacking entity.
-	 * @param attacker Pointer to the attacking entity.
-	 * @return Distance between the enemy's base and the attacker.
+	 * @brief Calculates the distance between the entity and a target.
+	 * @param entity Pointer to the entity.
+	 * @return Distance between the target and the entity.
 	 */
-	int distaneBetweenBaseAndAttacker(Entity* attacker);
+	int heuristic(int startX, int startY, int targetX, int targetY);
+
+	/**
+     * @brief Check if a map position is valid and accessible.
+     *
+     * This function checks whether a given map position, specified by its x and y coordinates, is valid and accessible
+     * according to the defined criteria. It returns true if the position is within the valid map boundaries and if it
+     * represents an accessible area.
+     *
+     * @param posX The x-coordinate of the map position to be checked.
+     * @param posY The y-coordinate of the map position to be checked.
+     * @return True if the map position is valid and accessible, otherwise false.
+     *
+     * @note The criteria for validity and accessibility may vary depending on the application.
+     */
+	bool isMapPlaceValid(int posX, int posY);
 
 	/**
 	 * @brief Builds a random entity based on predefined probabilities.
@@ -305,4 +329,20 @@ private:
 	};
 };
 
+struct Node 
+{
+	int x, y;
+	int g, h;
 
+
+	Node(int _x, int _y, int _g, int _h) : x(_x), y(_y), g(_g), h(_h) {}
+
+	int f() const {
+		return g + h;
+	}
+
+	bool operator>(const Node& other) const {
+		return f() > other.f();
+	}
+
+};
