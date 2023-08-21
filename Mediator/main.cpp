@@ -150,8 +150,8 @@ void generateFirstStatus()
 	readMap();
 	std::ofstream outputFile(status, std::ios::app);
 
-	std::string firstBaseStatus = "P B 10 " + std::to_string(basePlayer1Position.first) + " " + std::to_string(basePlayer1Position.second) + " 100 0";
-	std::string secondBaseStatus = "E B 12 " + std::to_string(basePlayer2Position.first) + " " + std::to_string(basePlayer2Position.second) + " 100 0";
+	std::string firstBaseStatus = "P B 10 " + std::to_string(basePlayer1Position.first) + " " + std::to_string(basePlayer1Position.second) + " 200 0";
+	std::string secondBaseStatus = "E B 12 " + std::to_string(basePlayer2Position.first) + " " + std::to_string(basePlayer2Position.second) + " 200 0";
 
 	basePlayer1IDandCharType.first = 10;
 	basePlayer1IDandCharType.second = 'P';
@@ -159,8 +159,8 @@ void generateFirstStatus()
 	basePlayer2IDandCharType.first = 12;
 	basePlayer2IDandCharType.second = 'E';
 
-	playersBaseHp.first = 100;
-	playersBaseHp.second = 100;
+	playersBaseHp.first = 200;
+	playersBaseHp.second = 200;
 
 	occupiedID[10] = 10;
 	occupiedID[12] = 12;
