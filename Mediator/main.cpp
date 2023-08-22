@@ -7,13 +7,12 @@
 #include <fstream>
 #include <sstream>
 
-const int MAX_TURNS = 1000;
 
 
-std::string program = "MIEJCE PLIKU WYKONAWCZEGO PLAYER";
-std::string mapa = "MIEJSCE PLIKU NA KOMPUTERZE";
-std::string status = "MIEJSCE PLIKU NA KOMPUTERZE";
-std::string rozkazy = "MIEJSCE PLIKU NA KOMPUTERZE";
+std::string program = "";
+std::string mapa = "";
+std::string status = "";
+std::string rozkazy = "";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
@@ -85,11 +84,11 @@ void readOrders();
 void generateFirstStatus();
 void changeBuildStatus(int baseID, char buildEntityType);
 void moveEntity(int ID, int posX, int posY);
-void attackBase(int damage, int attackedBaseID);
+void attackedEntity(int damage, int attackedEntityID);
 bool checkWin(int damage, int IDbaseToLose);
 int creatorID();
 void updateBuilding();
-void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID);
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedEntityID, int& attackingEntityID);
 void rewriteStatusToOppositePlayer(int goldLineToChange);
 void allActions();
 
@@ -210,7 +209,7 @@ void readOrders()
 	int baseID = 0;
 	char actionType = ' ', entityTypeToBuildOrBuy = ' ';
 	int attackingEntityID = 0, moveX = 0, moveY = 0;
-	int attackedBaseID = 0;
+	int attackedEntityID = 0;
 	int totaldmg = 0;
 	int damagedBase = 0;
 
@@ -227,7 +226,7 @@ void readOrders()
 			continue;
 		}
 
-		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedBaseID, attackingEntityID);
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedEntityID, attackingEntityID);
 
 		if (issBuyBuild >> baseID >> actionType >> entityTypeToBuildOrBuy) //Budowanie lub kupowanie jednostki
 		{
@@ -285,13 +284,14 @@ void readOrders()
 
 		}
 
-		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedBaseID, attackingEntityID);
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedEntityID, attackingEntityID);
 
-		if (issAttack >> attackingEntityID >> actionType >> attackedBaseID) //zadawanie dmg bazie
+		if (issAttack >> attackingEntityID >> actionType >> attackedEntityID) //zadawanie dmg bazie
 		{
+			//std::cout << attackingEntityID << " " << actionType << " " << attackedEntityID << " \n";
 			
 			totaldmg += damageFromEntity[actionType];
-			damagedBase = attackedBaseID;
+			damagedBase = attackedEntityID;
 		}
 
 		else
@@ -303,22 +303,22 @@ void readOrders()
 
 	if (totaldmg > 0)
 	{
-		attackBase(totaldmg, attackedBaseID);
+		attackedEntity(totaldmg, attackedEntityID);
 	}
 
 	ordersFile.close();
 }
 
 
-void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID)
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedEntityID, int& attackingEntityID)
 {
 	baseID = 0;
 	actionType = ' ';
 	entityTypeToBuildOrBuy = ' ';
 	moveX = 0;
 	moveY = 0;
-	attackedBaseID = 0;
 	attackedEntityID = 0;
+	attackingEntityID = 0;
 }
 
 
@@ -469,9 +469,9 @@ void moveEntity(int ID, int posX, int posY)
 }
 
 
-void attackBase(int damage, int attackedBaseID)
+void attackEntity(int damage, int attackedEntityID)
 {
-	if (basePlayer1IDandCharType.first == attackedBaseID)
+	if (basePlayer1IDandCharType.first == attackedEntityID)
 	{
 		playersBaseHp.first -= damage;
 	}
@@ -499,7 +499,7 @@ void attackBase(int damage, int attackedBaseID)
 
 		if (iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding)
 		{
-			if (tmpID == attackedBaseID)
+			if (tmpID == attackedEntityID)
 			{
 				std::string damageBase = std::string(1, whichPlayerbase) + " "
 					+ std::string(1, entityType) + " "
@@ -752,14 +752,15 @@ int main()
 
 	while (turnCounter < MAX_TURNS)
 	{
+		std::cout << "ruch plaeyr 1\n";
 		system(commandPlayer1.c_str()); //odpalenie tury dla gracza pierwszego   
 		allActions(1);
 		
+		std::cout << "ruch plaeyr 2\n";
 		system(commandPlayer2.c_str()); //odpalenie tury dla gracza drugiego 
 		allActions(2);
 
 		turnCounter++;
-	
 	}
 
 	
