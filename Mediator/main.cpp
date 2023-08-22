@@ -7,12 +7,12 @@
 #include <fstream>
 #include <sstream>
 
+const int MAX_TURNS = 2000;
 
-
-std::string program = "";
-std::string mapa = "";
-std::string status = "";
-std::string rozkazy = "";
+std::string program = "C:\\Users\\marci\\OneDrive\\Pulpit\\c++\\Player\\x64\\Debug\\Player.exe";
+std::string mapa = "C:\\Users\\marci\\OneDrive\\Pulpit\\mapa.txt";
+std::string status = "C:\\Users\\marci\\OneDrive\\Pulpit\\status.txt";
+std::string rozkazy = "C:\\Users\\marci\\OneDrive\\Pulpit\\rozkazy.txt";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
@@ -84,11 +84,11 @@ void readOrders();
 void generateFirstStatus();
 void changeBuildStatus(int baseID, char buildEntityType);
 void moveEntity(int ID, int posX, int posY);
-void attackedEntity(int damage, int attackedEntityID);
+void attackEntity(int damage, int attackEntityID);
 bool checkWin(int damage, int IDbaseToLose);
 int creatorID();
 void updateBuilding();
-void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedEntityID, int& attackingEntityID);
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackEntityID, int& attackingEntityID);
 void rewriteStatusToOppositePlayer(int goldLineToChange);
 void allActions();
 
@@ -209,7 +209,7 @@ void readOrders()
 	int baseID = 0;
 	char actionType = ' ', entityTypeToBuildOrBuy = ' ';
 	int attackingEntityID = 0, moveX = 0, moveY = 0;
-	int attackedEntityID = 0;
+	int attackEntityID = 0;
 	int totaldmg = 0;
 	int damagedBase = 0;
 
@@ -226,7 +226,7 @@ void readOrders()
 			continue;
 		}
 
-		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedEntityID, attackingEntityID);
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackEntityID, attackingEntityID);
 
 		if (issBuyBuild >> baseID >> actionType >> entityTypeToBuildOrBuy) //Budowanie lub kupowanie jednostki
 		{
@@ -284,14 +284,14 @@ void readOrders()
 
 		}
 
-		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedEntityID, attackingEntityID);
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackEntityID, attackingEntityID);
 
-		if (issAttack >> attackingEntityID >> actionType >> attackedEntityID) //zadawanie dmg bazie
+		if (issAttack >> attackingEntityID >> actionType >> attackEntityID) //zadawanie dmg bazie
 		{
-			//std::cout << attackingEntityID << " " << actionType << " " << attackedEntityID << " \n";
+			//std::cout << attackingEntityID << " " << actionType << " " << attackEntityID << " \n";
 			
 			totaldmg += damageFromEntity[actionType];
-			damagedBase = attackedEntityID;
+			damagedBase = attackEntityID;
 		}
 
 		else
@@ -303,21 +303,21 @@ void readOrders()
 
 	if (totaldmg > 0)
 	{
-		attackedEntity(totaldmg, attackedEntityID);
+		attackEntity(totaldmg, attackEntityID);
 	}
 
 	ordersFile.close();
 }
 
 
-void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedEntityID, int& attackingEntityID)
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackEntityID, int& attackingEntityID)
 {
 	baseID = 0;
 	actionType = ' ';
 	entityTypeToBuildOrBuy = ' ';
 	moveX = 0;
 	moveY = 0;
-	attackedEntityID = 0;
+	attackEntityID = 0;
 	attackingEntityID = 0;
 }
 
@@ -469,9 +469,9 @@ void moveEntity(int ID, int posX, int posY)
 }
 
 
-void attackEntity(int damage, int attackedEntityID)
+void attackEntity(int damage, int attackEntityID)
 {
-	if (basePlayer1IDandCharType.first == attackedEntityID)
+	if (basePlayer1IDandCharType.first == attackEntityID)
 	{
 		playersBaseHp.first -= damage;
 	}
@@ -499,7 +499,7 @@ void attackEntity(int damage, int attackedEntityID)
 
 		if (iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding)
 		{
-			if (tmpID == attackedEntityID)
+			if (tmpID == attackEntityID)
 			{
 				std::string damageBase = std::string(1, whichPlayerbase) + " "
 					+ std::string(1, entityType) + " "
