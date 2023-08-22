@@ -11,27 +11,35 @@ void Game::loadMap()
 		throw std::runtime_error("Failed to load the map");
 	}
 
-	unsigned int lineCounter = 0; // Auxiliary variable for iterating through the vector
+	unsigned int rowsCounter = 0;
+	unsigned int columnsCounter = 0;
+	// Auxiliary variable for iterating through the vector
 	std::string line;
 
 	while (std::getline(inputFile, line))
 	{
-		line.pop_back();
+                line.pop_back();
 		this->map.push_back({}); // Add an empty vector to our vector of vectors
 
 		for (char c : line)
 		{
+			if (c == '6')
+			{
+				this->mines.push_back({ rowsCounter,columnsCounter });
+			}
+
 			if (!std::isdigit(c)) // Check if the loaded value is a number; if not, an error occurs
 			{
 				throw std::runtime_error("Found an illegal character in the map file");
 			}
 
-			this->map[lineCounter].push_back(c - '0'); // Add the value to our empty vector
+			this->map[rowsCounter].push_back(c - '0');// Add the value to our empty vector
+			columnsCounter++;
 		}
-
-		lineCounter++;
+		columnsCounter = 0;
+		rowsCounter++;
 	}
-	
+
 	inputFile.close();
 }
 
@@ -129,10 +137,14 @@ void Game::loadEntity(const std::string entityParameters)
 	int posY = 0;
 	int health = 0;
 	iss >> tmpPlayer >> entityType >> uniqueID >> posX >> posY >> health;
-	
+
 	if (entityParameters[0] == PlayerBaseChar) // Check if we're reading a line for our entity.
 	{
-		
+		if (entityType == 'W')
+		{
+			this->isWorkerHere = true;
+		}
+
 		Entity* emptyEntity = createEntity(entityType);
 
 		if (emptyEntity)
@@ -144,7 +156,8 @@ void Game::loadEntity(const std::string entityParameters)
 	}
 	else // Load enemy entity
 	{
-		
+		this->mapOfEnemiesEntities.emplace(std::make_pair(posX, posY), uniqueID);
+
 		Entity* emptyEntity = createEntity(entityType);
 
 		if (emptyEntity)
@@ -160,14 +173,13 @@ Entity* Game::createEntity(char entityType)
 {
 	if (entityCreators.find(entityType) != entityCreators.end()) //Sprawdzenie czy mozemy stworzyc jednostke o danym typie.
 	{
-		
 		return entityCreators[entityType](); //Tworzenie danej jednostki.
 	}
 	return nullptr;
 
 }
 
-void Game::setEntityParameters(Entity* emptyEntity,int ID, int posX, int posY, int health)
+void Game::setEntityParameters(Entity* emptyEntity, int ID, int posX, int posY, int health)
 {
 	emptyEntity->setEntityUniqueID(ID);
 	emptyEntity->setPosition(posX, posY);
@@ -250,7 +262,7 @@ void Game::setPlayerChar()
 	}
 	else if (playerNumberTurn == "2") // If we are player 2, our units will start with the letter 'E'.
 	{
-		
+
 		PlayerBaseChar = 'E';
 		EnemyBaseChar = 'P';
 	}
@@ -296,7 +308,7 @@ int Game::creatorID()
 	return newID;
 }
 
-std::vector<std::pair<int, int>> Game::Astar(Entity* entity, int targetX,int targetY)
+std::vector<std::pair<int, int>> Game::Astar(Entity* entity, int targetX, int targetY)
 {
 	const int dx[4] = { -1, 1, 0, 0 };
 	const int dy[4] = { 0, 0, -1, 1 };
@@ -304,8 +316,9 @@ std::vector<std::pair<int, int>> Game::Astar(Entity* entity, int targetX,int tar
 	int rows = map.size();
 	int cols = map[0].size();
 
+
 	std::priority_queue<Node, std::vector<Node>, std::greater<Node>> openSet;
-	openSet.push(Node(entity->getPosX(), entity->getPosY(), 0, heuristic(entity->getPosX(),entity->getPosY(), targetX, targetY)));
+	openSet.push(Node(entity->getPosX(), entity->getPosY(), 0, heuristic(entity->getPosX(), entity->getPosY(), targetX, targetY)));
 
 	std::unordered_map<int, std::unordered_map<int, int>> gValues;
 	gValues[entity->getPosX()][entity->getPosY()] = 0;
@@ -320,36 +333,44 @@ std::vector<std::pair<int, int>> Game::Astar(Entity* entity, int targetX,int tar
 		int x = current.x;
 		int y = current.y;
 
-		if (x == targetX && y == targetY) 
+		if (x == targetX && y == targetY)
 		{
 			std::vector<std::pair<int, int>> path;
-			while (x != entity->getPosX() || y != entity->getPosY()) 
+			while (x != entity->getPosX() || y != entity->getPosY())
 			{
 				path.push_back({ x, y });
-				auto &prev = cameFrom[x][y];
+				auto& prev = cameFrom[x][y];
 				x = prev.first;
 				y = prev.second;
 			}
 			path.push_back({ entity->getPosX(), entity->getPosY() });
 			std::reverse(path.begin(), path.end());
+
+			if (path.size() != 0 && targetX == enemyBase.getBasePosX() && targetY == enemyBase.getBasePosY())
+			{
+				path.pop_back();
+			}
 			return path;
 		}
 
-		for (int i = 0; i < 4; ++i) 
+		for (int i = 0; i < 4; ++i)
 		{
 			int nx = x + dx[i];
-			
+
 			int ny = y + dy[i];
 
-			if (!isMapPlaceValid(nx, ny) || map[nx][ny] == 9)
+			auto isThereAnyEnemyEntity = this->mapOfEnemiesEntities.count({ nx, ny });
+			if (!isMapPlaceSolid(nx, ny)
+				|| map[nx][ny] == 9
+				|| (isThereAnyEnemyEntity != 0 && nx != this->enemyBase.getBasePosX() && ny != this->enemyBase.getBasePosY()))
 			{
 				continue;
 			}
 
 			int tentativeG = gValues[x][y] + 1;
-			if (gValues.find(nx) == gValues.end() 
-				|| gValues[nx].find(ny) == gValues[nx].end() 
-				||tentativeG < gValues[nx][ny]) 
+			if (gValues.find(nx) == gValues.end()
+				|| gValues[nx].find(ny) == gValues[nx].end()
+				|| tentativeG < gValues[nx][ny])
 			{
 				gValues[nx][ny] = tentativeG;
 				cameFrom[nx][ny] = { x, y };
@@ -362,7 +383,7 @@ std::vector<std::pair<int, int>> Game::Astar(Entity* entity, int targetX,int tar
 	return std::vector<std::pair<int, int>>(); // No path found
 }
 
-bool Game::isMapPlaceValid(int posX, int posY)
+bool Game::isMapPlaceSolid(int posX, int posY)
 {
 	return posX >= 0 && posX < this->map.size() && posY >= 0 && posY < this->map[0].size();
 }
@@ -371,6 +392,10 @@ void Game::buildRandomEntity()
 {
 	if (playerBase.isReadyToBuild())
 	{
+		if (this->isWorkerHere == false)
+		{
+			buildEntity('W');
+		}
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_int_distribution<int> distribution(0, 6);
@@ -378,7 +403,7 @@ void Game::buildRandomEntity()
 		int random_number = distribution(gen);
 
 		int counter = 0;
-		while (counter < 7)
+		while (counter < 7 && this->isWorkerHere)
 		{
 			if (playerBase.isReadyToBuy(entityCost[entityTypesForBuildOrBuy[random_number]]))
 			{
@@ -390,6 +415,7 @@ void Game::buildRandomEntity()
 			else
 			{
 				random_number++;
+
 				if (random_number == 7)
 				{
 					random_number = 0;
@@ -433,7 +459,7 @@ void Game::buyRandomEntity()
 	}
 }
 
-int Game::heuristic(int startX,int startY, int targetX,int targetY)
+int Game::heuristic(int startX, int startY, int targetX, int targetY)
 {
 	return std::abs(startX - targetX) + std::abs(startY - targetY);
 }
@@ -442,24 +468,67 @@ void Game::moveWithAllEntity()
 {
 	for (const auto& unit : PlayerEntities)
 	{
-		// Calculate the farthest position we can reach
 		std::vector<std::pair<int, int>> path;
 		std::pair<int, int> newPosition;
-		path = Astar(unit.second, enemyBase.getBasePosX(), enemyBase.getBasePosY());
-		
+
+
+		if (unit.second->getClass() == 'W' && this->mines.size() != 0) //If we have worker and mines
+		{
+			if (this->mines.size() == 1)
+			{
+				path = Astar(unit.second, mines[0].first, mines[0].second);
+			}
+
+			else
+			{
+				int roadToNearestMine = INT_MAX;
+
+				for (int i = 0; i < mines.size(); i++)
+				{
+					if (unit.second->getPosX() == mines[i].first &&
+						unit.second->getPosY() == mines[i].second)
+					{
+						path.clear();
+						break;
+					}
+
+					auto pathToTheMine = Astar(unit.second, mines[i].first, mines[i].second);
+
+					if (pathToTheMine.size() < roadToNearestMine)
+					{
+						path = pathToTheMine;
+						roadToNearestMine = path.size();
+					}
+				}
+			}
+		}
+
+
+
+		else //Every unit except ther "Worker"
+		{
+			path = Astar(unit.second, enemyBase.getBasePosX(), enemyBase.getBasePosY());
+		}
+
+
 		if (!path.empty())
 		{
 			if (path.size() > unit.second->getMovementSpeed())
 			{
-				newPosition = path[unit.second->getMovementSpeed()];
+				int moves = unit.second->getMovementSpeed();
+				newPosition = path[moves];
 			}
-			else
+
+			else if (path.size() <= unit.second->getMovementSpeed())
 			{
-				newPosition = path[path.size() - 1];
+				newPosition = path.back();
 			}
-			
-			unit.second->setPosition(newPosition.first, newPosition.second);
-			generateOrdersMove(unit.second->getEntityUniqueID(), 'M', newPosition.first, newPosition.second); // Generate a move order
+
+			if (newPosition.first != unit.second->getPosX() || newPosition.second != unit.second->getPosY())
+			{
+				unit.second->setPosition(newPosition.first, newPosition.second);
+				generateOrdersMove(unit.second->getEntityUniqueID(), 'M', newPosition.first, newPosition.second); // Generate a move order
+			}
 		}
 	}
 }
@@ -468,14 +537,45 @@ void Game::attackWithAllEntity()
 {
 	for (const auto& unit : PlayerEntities)
 	{
-		// Calculate the distance between us and the target unit
-		//std::cout << this->getPlayerBaseChar() <<  " jednostka moja i jej id->" << unit.second->getEntityUniqueID() << " polozenie -> " << unit.second->getPosX() << " "<< unit.second->getPosY() << '\n';
-		int distanceFromEnemyBase;
-		distanceFromEnemyBase = heuristic(unit.second->getPosX(), unit.second->getPosY(),enemyBase.getBasePosX(),enemyBase.getBasePosY());
-		if (distanceFromEnemyBase <= unit.second->getAttackRange()) // If the distance is less than our attack range, attack
+		int attackRange = unit.second->getAttackRange();
+		bool continueToNextUnit = false;
+		std::cout << "\n";
+		for (int i = -1 * attackRange; i <= attackRange; i++)
 		{
-			enemyBase.takeDamage(damageFromEntity[unit.second->getClass()]);
-			generateOrdersAttack(unit.second->getEntityUniqueID(), enemyBase.getBaseUniqueID()); // Generate an attack order
+			for (int j = std::abs(i) - attackRange; j <= std::abs(std::abs(i) - attackRange); j++)
+			{
+				std::pair<int, int> positionToAttack;
+				positionToAttack.first = unit.second->getPosX() + i;
+				positionToAttack.second = unit.second->getPosY() + j;
+				
+				if (isMapPlaceSolid(positionToAttack.first, positionToAttack.second))
+				{
+					//Check if it the enemy base, enemy base is the priority
+					if (positionToAttack.first == this->enemyBase.getBasePosX() && positionToAttack.second == this->enemyBase.getBasePosY())
+					{
+						enemyBase.takeDamage(damageFromEntity[unit.second->getClass()]);
+						generateOrdersAttack(unit.second->getEntityUniqueID(), enemyBase.getBaseUniqueID());
+						continueToNextUnit = true; 
+						break;
+					}
+
+
+					auto it = this->mapOfEnemiesEntities.find({ positionToAttack.first,positionToAttack.second });
+
+					if (it != this->mapOfEnemiesEntities.end())
+					{
+						generateOrdersAttack(unit.second->getEntityUniqueID(), it->second);
+						continueToNextUnit = true;
+						break;
+					}
+				}
+			}
+			
+
+			if (continueToNextUnit)
+			{
+				break;
+			}
 		}
 	}
 }
@@ -486,7 +586,6 @@ void Game::mainAlgorithm()
 	loadMap();
 	loadEntities();
 	buildRandomEntity();
-	//buyRandomEntity();
 	moveWithAllEntity();
 	attackWithAllEntity();
 }
