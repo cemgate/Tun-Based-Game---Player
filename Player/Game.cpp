@@ -539,7 +539,7 @@ void Game::attackWithAllEntity()
 	{
 		int attackRange = unit.second->getAttackRange();
 		bool continueToNextUnit = false;
-		std::cout << "\n";
+		
 		for (int i = -1 * attackRange; i <= attackRange; i++)
 		{
 			for (int j = std::abs(i) - attackRange; j <= std::abs(std::abs(i) - attackRange); j++)
