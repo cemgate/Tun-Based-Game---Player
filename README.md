@@ -1,4 +1,4 @@
-# Jak zbudować
+# Jak zbudować xdxd
 
 Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.cpp w folderze Mediator. (linijka 13-18)
 
