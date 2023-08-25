@@ -8,4 +8,5 @@
 #include <functional>
 #include <queue>
 #include<random>
+#include <climits>
 #include "Vector2f.h"
