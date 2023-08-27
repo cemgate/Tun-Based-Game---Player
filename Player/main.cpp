@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
     
     if (argc >= 2) 
     {
-        Game game(argv[1], argv[2], argv[3], argv[4]); 
+        Game game(argv[1], argv[2], argv[3], argv[4]);
         
         try
         {
