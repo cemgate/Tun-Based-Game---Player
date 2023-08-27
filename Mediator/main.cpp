@@ -7,72 +7,31 @@
 #include <fstream>
 #include <sstream>
 
-const int MAX_TURNS = 100;
-long startedGold = 2000;
+const int MAX_TURNS = 1000;
 
-std::string program = "C:\\Users\\marci\\OneDrive\\Pulpit\\c++\\Player\\x64\\Debug\\Player.exe";
-std::string mapa = "C:\\Users\\marci\\OneDrive\\Pulpit\\mapa.txt";
-std::string status = "C:\\Users\\marci\\OneDrive\\Pulpit\\status.txt";
-std::string rozkazy = "C:\\Users\\marci\\OneDrive\\Pulpit\\rozkazy.txt";
+//DO UZUPELNIENIA!!!!!
+std::string program = "MIEJSCE PLIKU WYKONAWCZEGO";
+std::string mapa = "MIEJSE PLIKU NA KOMPUTERZE";
+std::string status = "MIEJSE PLIKU NA KOMPUTERZE";
+std::string rozkazy = "MIEJSE PLIKU NA KOMPUTERZE";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
-
-struct Entity
-{
-	int health = 0;
-	int posX = 0;
-	int posY = 0;
-	int ID = 0;
-	char entityClass = ' ';
-	char playerChar = ' ';
-
-	std::string returnEntityStringToStatus()
-	{
-		std::string newEntity = std::string(1, playerChar) + " "
-			+ std::string(1, entityClass) + " "
-			+ std::to_string(ID) + " "
-			+ std::to_string(posX) + " "
-			+ std::to_string(posY) + " "
-			+ std::to_string(health);
-		return newEntity;
-
-	}
-};
-
-struct Base
-{
-	int health = 200;
-	int posX = 0;
-	int posY = 0;
-	int ID = 0;
-	long gold = startedGold;
-	char entityClass = 'B';
-	char playerChar = ' ';
-	char buildingEntity = '0';
-	bool isBuildingNow = false;
-	int buildTime = 0;
-
-	std::string returnBaseStringToStatus()
-	{
-		return std::string(1, playerChar) + " "
-			+ std::string(1, entityClass) + " "
-			+ std::to_string(ID) + " "
-			+ std::to_string(posX) + " "
-			+ std::to_string(posY) + " "
-			+ std::to_string(health) + " "
-			+ std::string(1, buildingEntity);
-	}
-};
-
-std::unordered_map<int, Entity*> entitiesPlayer1;
-std::unordered_map<int, Entity*> entitiesPlayer2;
-std::pair<Base, Base> bases;
-std::vector<std::pair<int, int>> mines;
-
+int goldPlayer1 = 2000;
+int goldPlayer2 = 2000;
 
 std::map<int, int> occupiedID;
-std::map<int, char> IDandCharEntity;
+
+std::pair<int, int> basePlayer1Position;
+std::pair<int, int> basePlayer2Position;
+
+std::pair<int, char> basePlayer1IDandCharType;
+std::pair<int, char> basePlayer2IDandCharType;
+
+std::pair<int, int> playersBuildTime;
+std::pair<bool, bool> playerIsBuilding = { false,false };
+std::pair<char, char> playersBuildingEntityType;
+std::pair<int, int> playersBaseHp;
 
 
 std::unordered_map<char, int> entityBirthHealth =
@@ -119,49 +78,40 @@ std::unordered_map<char, int> entityCost =
 	{'W', 100},
 };
 
-static constexpr int m_damage_table[7][8] =
-{
-	// K   S   A   P   C   R   W   B
-	{ 35, 35, 35, 35, 35, 50, 35, 35 }, // K
-	{ 30, 30, 30, 20, 20, 30, 30, 30 }, // S
-	{ 15, 15, 15, 15, 10, 10, 15, 15 }, // A
-	{ 35, 15, 15, 15, 10, 10, 15, 15 }, // P
-	{ 40, 40, 40, 40 ,40, 40, 40, 50 }, // C
-	{ 10, 10, 10, 10, 10, 10, 10, 50 }, // R
-	{ 5,  5,  5,  5,  5,  5,  5,  1  }  // W
-};
 
-std::map<char, unsigned int> m_unit_index
-{
-	{ 'K', 0 },
-	{ 'S', 1 },
-	{ 'A', 2 },
-	{ 'P', 3 },
-	{ 'C', 4 },
-	{ 'R', 5 },
-	{ 'W', 6 },
-	{ 'B', 7 }
-};
-
-
-void readMap();
-void generateFirstStatus();
+void addNewEntityToStatus(std::string newEntityLine);
 void cleanOrdersOrStatus(const std::string& file);
 void readOrders();
-void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackEntityID, int& attackingEntityID);
+void generateFirstStatus();
 void changeBuildStatus(int baseID, char buildEntityType);
 void moveEntity(int ID, int posX, int posY);
-void attackEntity(int attackerID, int victimID);
-void checkWin();
-void updateBuilding();
-void rewriteStatusToOppositePlayer(int whichPlayerTakesTurn);
+void attackBase(int damage, int attackedBaseID);
+bool checkWin(int damage, int IDbaseToLose);
 int creatorID();
-void allActions(int whichPlayerTakesTurn);
-void checkWinAfterTurnsEnd();
-void workerInMines(int whichPlayerTakesTurn);
-void cleanMemory();
+void updateBuilding();
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID);
+void rewriteStatusToOppositePlayer(int goldLineToChange);
+void allActions();
 
 
+// Adds a new entity line to the status file.
+void addNewEntityToStatus(std::string newEntityLine)
+{
+	std::ofstream outputFile(status, std::ios::app);
+
+	if (!outputFile)
+	{
+		std::cerr << "Nie można otworzyć pliku." << std::endl;
+		exit(0);
+	}
+
+	outputFile << newEntityLine << std::endl;
+
+	outputFile.close();
+
+}
+
+// Reads the map file and updates player base positions.
 void readMap()
 {
 	std::ifstream mapFile(mapa);
@@ -176,23 +126,14 @@ void readMap()
 		{
 			if (c == '1')
 			{
-				bases.first.posX = rowCount;
-				bases.first.posY = columnCount;
-				bases.first.ID = 10;
-				bases.first.playerChar = 'P';
+				basePlayer1Position.first = rowCount;
+				basePlayer1Position.second = columnCount;
 			}
 
 			if (c == '2')
 			{
-				bases.second.posX = rowCount;
-				bases.second.posY = columnCount;
-				bases.second.ID = 12;
-				bases.second.playerChar = 'E';
-			}
-
-			if (c == '6')
-			{
-				mines.push_back(std::make_pair(rowCount, columnCount));
+				basePlayer2Position.first = rowCount;
+				basePlayer2Position.second = columnCount;
 			}
 
 			columnCount++;
@@ -203,14 +144,23 @@ void readMap()
 	}
 }
 
+// Generates the initial status file with base's data.
 void generateFirstStatus()
 {
 	readMap();
-
 	std::ofstream outputFile(status, std::ios::app);
 
-	std::string firstBaseStatus = bases.first.returnBaseStringToStatus();
-	std::string secondBaseStatus = bases.second.returnBaseStringToStatus();
+	std::string firstBaseStatus = "P B 10 " + std::to_string(basePlayer1Position.first) + " " + std::to_string(basePlayer1Position.second) + " 100 0";
+	std::string secondBaseStatus = "E B 12 " + std::to_string(basePlayer2Position.first) + " " + std::to_string(basePlayer2Position.second) + " 100 0";
+
+	basePlayer1IDandCharType.first = 10;
+	basePlayer1IDandCharType.second = 'P';
+
+	basePlayer2IDandCharType.first = 12;
+	basePlayer2IDandCharType.second = 'E';
+
+	playersBaseHp.first = 100;
+	playersBaseHp.second = 100;
 
 	occupiedID[10] = 10;
 	occupiedID[12] = 12;
@@ -221,13 +171,15 @@ void generateFirstStatus()
 		exit(0);
 	}
 
-	outputFile << startedGold << std::endl;
+	outputFile << goldPlayer1 << std::endl;
 	outputFile << firstBaseStatus << std::endl;
 	outputFile << secondBaseStatus << std::endl;
 
 	outputFile.close();
 }
 
+// Cleans the content of the specified file by truncating it.
+// The 'file' parameter is the name of the file to be cleaned.
 void cleanOrdersOrStatus(const std::string& file)
 {
 	std::ofstream outputFile(file, std::ios::trunc); // Otwórz plik w trybie wyczyszczenia
@@ -242,6 +194,7 @@ void cleanOrdersOrStatus(const std::string& file)
 	outputFile.close();
 }
 
+// Reads and processes orders from the orders file.
 void readOrders()
 {
 	std::ifstream ordersFile(rozkazy);
@@ -258,7 +211,7 @@ void readOrders()
 	int baseID = 0;
 	char actionType = ' ', entityTypeToBuildOrBuy = ' ';
 	int attackingEntityID = 0, moveX = 0, moveY = 0;
-	int attackEntityID = 0;
+	int attackedBaseID = 0;
 	int totaldmg = 0;
 	int damagedBase = 0;
 
@@ -271,28 +224,73 @@ void readOrders()
 
 		if (issMove >> baseID >> actionType >> moveX >> moveY) // poruszanie jednostka  
 		{
-
 			moveEntity(baseID, moveX, moveY);
 			continue;
 		}
 
-		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackEntityID, attackingEntityID);
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedBaseID, attackingEntityID);
 
 		if (issBuyBuild >> baseID >> actionType >> entityTypeToBuildOrBuy) //Budowanie lub kupowanie jednostki
 		{
+
+			if (actionType == 'P')
+			{
+				std::string tmpStatusLine;
+				int tmpID = creatorID();
+
+				if (basePlayer1IDandCharType.first == baseID)
+				{
+					goldPlayer1 -= entityCost[entityTypeToBuildOrBuy];
+					tmpStatusLine = std::string(1, basePlayer1IDandCharType.second) + " "
+						+ std::string(1, entityTypeToBuildOrBuy) + " "
+						+ std::to_string(tmpID) + " "
+						+ std::to_string(basePlayer1Position.first) + " "
+						+ std::to_string(basePlayer1Position.second) + " "
+						+ std::to_string(entityBirthHealth[entityTypeToBuildOrBuy]);
+
+					addNewEntityToStatus(tmpStatusLine);
+					continue;
+				}
+
+				else
+				{
+					goldPlayer2 -= entityCost[entityTypeToBuildOrBuy];
+					tmpStatusLine = std::string(1, basePlayer2IDandCharType.second) + " "
+						+ std::string(1, entityTypeToBuildOrBuy) + " "
+						+ std::to_string(tmpID) + " "
+						+ std::to_string(basePlayer2Position.first) + " "
+						+ std::to_string(basePlayer2Position.second) + " "
+						+ std::to_string(entityBirthHealth[entityTypeToBuildOrBuy]);
+
+					addNewEntityToStatus(tmpStatusLine);
+					continue;
+				}
+			}
+
 			if (actionType == 'B')
 			{
-				changeBuildStatus(baseID, entityTypeToBuildOrBuy);
-				continue;
+
+				
+				if (basePlayer1IDandCharType.first == baseID)
+				{
+					changeBuildStatus(basePlayer1IDandCharType.first, entityTypeToBuildOrBuy);
+					continue;
+				}
+				else
+				{
+					changeBuildStatus(basePlayer2IDandCharType.first, entityTypeToBuildOrBuy);
+					continue;
+				}
 			}
 
 		}
 
-		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackEntityID, attackingEntityID);
+		helpClean(baseID, actionType, entityTypeToBuildOrBuy, moveX, moveY, attackedBaseID, attackingEntityID);
 
-		if (issAttack >> attackingEntityID >> actionType >> attackEntityID) //zadawanie dmg bazie
+		if (issAttack >> attackingEntityID >> actionType >> attackedBaseID) //zadawanie dmg bazie
 		{
-			attackEntity(attackingEntityID, attackEntityID);
+			totaldmg += damageFromEntity[actionType];
+			damagedBase = attackedBaseID;
 		}
 
 		else
@@ -302,211 +300,240 @@ void readOrders()
 		}
 	}
 
+	if (totaldmg > 0)
+	{
+		attackBase(totaldmg, attackedBaseID);
+	}
+
 	ordersFile.close();
 }
 
-void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackEntityID, int& attackingEntityID)
+// Helper function to reset variables related to order parsing.
+// It resets the values of various parameters used in order processing.
+void helpClean(int& baseID, char& actionType, char& entityTypeToBuildOrBuy, int& moveX, int& moveY, int& attackedBaseID, int& attackedEntityID)
 {
 	baseID = 0;
 	actionType = ' ';
 	entityTypeToBuildOrBuy = ' ';
 	moveX = 0;
 	moveY = 0;
-	attackEntityID = 0;
-	attackingEntityID = 0;
+	attackedBaseID = 0;
+	attackedEntityID = 0;
 }
 
+// Changes the build status of a player's base and updates the status file.
+// The 'baseID' parameter specifies the ID of the base.
+// The 'buildEntityType' parameter specifies the type of entity being built.
 void changeBuildStatus(int baseID, char buildEntityType)
 {
-	if (bases.first.ID == baseID)
+	if (basePlayer1IDandCharType.first == baseID)
 	{
-		bases.first.buildTime = entityBuildTime[buildEntityType];
-		bases.first.gold -= entityCost[buildEntityType];
-		bases.first.buildingEntity = buildEntityType;
+		playersBuildTime.first = entityBuildTime[buildEntityType];
+		playersBuildingEntityType.first = buildEntityType;
 
 		if (buildEntityType != '0')
 		{
-			bases.first.isBuildingNow = true;
+			playerIsBuilding.first = true;
 		}
 		else
 		{
-			bases.first.isBuildingNow = false;
+			playerIsBuilding.first = false;
 		}
 	}
-
 	else
 	{
-		bases.second.buildTime = entityBuildTime[buildEntityType];
-		bases.second.gold -= entityCost[buildEntityType];
-		bases.second.buildingEntity = buildEntityType;
+		playersBuildTime.second = entityBuildTime[buildEntityType];
+		playersBuildingEntityType.second = buildEntityType;
 
 		if (buildEntityType != '0')
 		{
-			bases.second.isBuildingNow = true;
+			playerIsBuilding.second = true;
 		}
 		else
 		{
-			bases.second.isBuildingNow = false;
-		}
-	}
-}
-
-void moveEntity(int ID, int posX, int posY)
-{
-	auto it = entitiesPlayer1.find(ID);
-	if (it != entitiesPlayer1.end())
-	{
-		it->second->posX = posX;
-		it->second->posY = posY;
-	}
-	else
-	{
-		auto it2 = entitiesPlayer2.find(ID);
-
-		if (it2 != entitiesPlayer2.end())
-		{
-			it2->second->posX = posX;
-			it2->second->posY = posY;
-		}
-	}
-}
-
-void attackEntity(int attackerID, int victimID)
-{
-	if (bases.first.ID == victimID)
-	{
-		bases.first.health -= m_damage_table[m_unit_index[entitiesPlayer2[attackerID]->entityClass]][7];
-	}
-	else if (bases.second.ID == victimID)
-	{
-		bases.second.health -= m_damage_table[m_unit_index[entitiesPlayer1[attackerID]->entityClass]][7];;
-	}
-
-	else// odbieranie hp wszystkim innym entity
-	{
-		auto it = entitiesPlayer1.find(victimID);
-
-		if (it != entitiesPlayer1.end())
-		{
-
-			it->second->health = it->second->health - m_damage_table[m_unit_index[IDandCharEntity[attackerID]]][m_unit_index[IDandCharEntity[victimID]]];
-
-		}
-		else if (it == entitiesPlayer1.end())
-		{
-			auto it2 = entitiesPlayer2.find(victimID);
-
-			if (it2 != entitiesPlayer2.end())
-			{
-
-				it2->second->health = it2->second->health - m_damage_table[m_unit_index[IDandCharEntity[attackerID]]][m_unit_index[IDandCharEntity[victimID]]];
-
-			}
-		}
-
-	}
-}
-
-void checkWin()
-{
-	if (bases.first.health < 0)
-	{
-		std::cout << "Wygrywa gracz drugi poprzez zniszczenie bazy przeciwnika'\n";
-		cleanMemory();
-		exit(0);
-	}
-
-	if (bases.second.health < 0)
-	{
-		std::cout << "Wygrywa gracz pierwszy poprzez zniszczenie bazy przeciwnika'\n";
-		cleanMemory();
-		exit(0);
-	}
-}
-
-void updateBuilding()
-{
-	if (bases.first.isBuildingNow)
-	{
-		bases.first.buildTime -= 1;
-
-		if (bases.first.buildTime == 0)
-		{
-			int newID = creatorID();
-			entitiesPlayer1[newID] = new Entity;
-			entitiesPlayer1[newID]->ID = newID;
-			entitiesPlayer1[newID]->entityClass = bases.first.buildingEntity;
-			entitiesPlayer1[newID]->playerChar = bases.first.playerChar;
-			entitiesPlayer1[newID]->posX = bases.first.posX;
-			entitiesPlayer1[newID]->posY = bases.first.posY;
-			entitiesPlayer1[newID]->health = entityBirthHealth[bases.first.buildingEntity];
-
-			IDandCharEntity[newID] = entitiesPlayer1[newID]->entityClass;
-
-			bases.first.isBuildingNow = false;
-			bases.first.buildTime = 0;
-			bases.first.buildingEntity = '0';
+			playerIsBuilding.second = false;
 		}
 	}
 
-	if (bases.second.isBuildingNow)
-	{
-		bases.second.buildTime -= 1;
-
-		if (bases.second.buildTime == 0)
-		{
-			int newID = creatorID();
-			entitiesPlayer2[newID] = new Entity;
-			entitiesPlayer2[newID]->ID = newID;
-			entitiesPlayer2[newID]->entityClass = bases.second.buildingEntity;
-			entitiesPlayer2[newID]->playerChar = bases.second.playerChar;
-			entitiesPlayer2[newID]->posX = bases.second.posX;
-			entitiesPlayer2[newID]->posY = bases.second.posY;
-			entitiesPlayer2[newID]->health = entityBirthHealth[bases.second.buildingEntity];
-
-			IDandCharEntity[newID] = entitiesPlayer2[newID]->entityClass;
-
-			bases.second.isBuildingNow = false;
-			bases.second.buildTime = 0;
-			bases.second.buildingEntity = '0';
-		}
-	}
-}
-
-void rewriteStatusToOppositePlayer(int whichPlayerTakesTurn)
-{
-	cleanOrdersOrStatus(status);
+	std::ifstream inputFile(status);
 	std::vector<std::string> lines;
 
-	if (whichPlayerTakesTurn == 1)
+	if (!inputFile.is_open())
 	{
-		lines.push_back(std::to_string(bases.first.gold));
-		lines.push_back(bases.first.returnBaseStringToStatus());
-		lines.push_back(bases.second.returnBaseStringToStatus());
+		std::cerr << "Could not open the file." << std::endl;
+		return exit(0);
 	}
 
-	else if (whichPlayerTakesTurn == 2)
+	// Wczytanie linii z pliku do wektora
+	std::string line;
+	while (getline(inputFile, line))
 	{
-		lines.push_back(std::to_string(bases.second.gold));
-		lines.push_back(bases.first.returnBaseStringToStatus());
-		lines.push_back(bases.second.returnBaseStringToStatus());
-	}
+		int tmpID, tmpposx, tmpposy, health;
+		char whichPlayerbase, entityType, entityBuilding;
+		std::istringstream iss(line);
 
-	for (const auto& p1 : entitiesPlayer1)
-	{
-		if (p1.second->health > 0)
+
+		if (iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding)
 		{
-			lines.push_back(p1.second->returnEntityStringToStatus());
+			if (tmpID == baseID)
+			{
+				std::string baseLine = std::string(1, whichPlayerbase) + " "
+					+ std::string(1, entityType) + " "
+					+ std::to_string(tmpID) + " "
+					+ std::to_string(tmpposx) + " "
+					+ std::to_string(tmpposy) + " "
+					+ std::to_string(health) + " "
+					+ std::string(1, buildEntityType);
+				lines.push_back(baseLine);
+			}
+			else
+			{
+				lines.push_back(line);
+			}
+		}
+		else
+		{
+			lines.push_back(line);
 		}
 	}
+	inputFile.close();
 
-	for (const auto& p2 : entitiesPlayer2)
+
+
+	
+	std::ofstream outputFile(status);
+	if (!outputFile.is_open())
 	{
-		if (p2.second->health > 0)
+		std::cerr << "Could not open the output file." << std::endl;
+		exit(0);
+	}
+
+	for (const std::string& line : lines)
+	{
+		outputFile << line << std::endl;
+	}
+	outputFile.close();
+}
+
+// Moves the entity with the specified ID to the given position and updates the status file.
+// The 'ID' parameter specifies the ID of the entity to be moved.
+// The 'posX' parameter specifies the new X position of the entity.
+// The 'posY' parameter specifies the new Y position of the entity.
+void moveEntity(int ID, int posX, int posY)
+{
+	std::ifstream inputFile(status);
+	std::vector<std::string> lines;
+
+	if (!inputFile.is_open())
+	{
+		std::cerr << "Could not open the file." << std::endl;
+		return exit(0);
+	}
+
+	// Wczytanie linii z pliku do wektora
+	std::string line;
+	while (getline(inputFile, line))
+	{
+		int tmpID, tmpposx, tmpposy, health;
+		char whichPlayerbase, entityType;
+		std::istringstream iss(line);
+
+
+		iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health;
+
+		if (tmpID == ID)
 		{
-			lines.push_back(p2.second->returnEntityStringToStatus());
+			std::string movedEntity;
+			movedEntity = std::string(1, whichPlayerbase) + " " + std::string(1, entityType) + " " + std::to_string(tmpID) + " " + std::to_string(posX) + " " + std::to_string(posY) + " " + std::to_string(health);
+			lines.push_back(movedEntity);
+		}
+
+		else
+		{
+			lines.push_back(line);
 		}
 	}
+	inputFile.close();
+
+
+
+
+	std::ofstream outputFile(status);
+
+	if (!outputFile.is_open())
+	{
+		std::cerr << "Could not open the output file." << std::endl;
+		exit(0);
+	}
+
+	for (const std::string& line : lines)
+	{
+		outputFile << line << std::endl;
+	}
+	outputFile.close();
+}
+
+// Performs an attack on the specified base, reducing its health by the given damage value,
+// and updates the status file to reflect the changes.
+// The 'damage' parameter specifies the amount of damage inflicted on the base.
+// The 'attackedBaseID' parameter specifies the ID of the base being attacked.
+void attackBase(int damage, int attackedBaseID)
+{
+	if (basePlayer1IDandCharType.first == attackedBaseID)
+	{
+		playersBaseHp.first -= damage;
+	}
+	else
+	{
+		playersBaseHp.second -= damage;
+	}
+
+	std::ifstream inputFile(status);
+	std::vector<std::string> lines;
+
+	if (!inputFile.is_open())
+	{
+		std::cerr << "Could not open the file." << std::endl;
+		return exit(0);
+	}
+
+	// Wczytanie linii z pliku do wektora
+	std::string line;
+	while (getline(inputFile, line))
+	{
+		int tmpID, tmpposx, tmpposy, health;
+		char whichPlayerbase, entityType, entityBuilding;
+		std::istringstream iss(line);
+
+		if (iss >> whichPlayerbase >> entityType >> tmpID >> tmpposx >> tmpposy >> health >> entityBuilding)
+		{
+			if (tmpID == attackedBaseID)
+			{
+				std::string damageBase = std::string(1, whichPlayerbase) + " "
+					+ std::string(1, entityType) + " "
+					+ std::to_string(tmpID) + " "
+					+ std::to_string(tmpposx) + " "
+					+ std::to_string(tmpposy) + " "
+					+ std::to_string(health - damage) + " "
+					+ std::string(1, entityBuilding);
+				lines.push_back(damageBase);
+			}
+
+
+			else
+			{
+				lines.push_back(line);
+			}
+
+
+		}
+		else
+		{
+			lines.push_back(line);
+		}
+	}
+	inputFile.close();
+
 
 	// Zapisanie zmodyfikowanych linii z powrotem do pliku
 	std::ofstream outputFile(status);
@@ -523,6 +550,131 @@ void rewriteStatusToOppositePlayer(int whichPlayerTakesTurn)
 	outputFile.close();
 }
 
+
+// Checks for a winning condition by comparing the health of both players' bases.
+// If the health of one player's base drops below 0, the opposing player wins,
+// and the program terminates.
+void checkWin()
+{
+    // Check if the health of the first player's base is below 0.
+    if (playersBaseHp.first < 0)
+    {
+        std::cout << "Player 2 wins by destroying the opponent's base.\n";
+        exit(0);  // Terminate the program to indicate the end of the game.
+    }
+
+    // Check if the health of the second player's base is below 0.
+    if (playersBaseHp.second < 0)
+    {
+        std::cout << "Player 1 wins by destroying the opponent's base.\n";
+        exit(0);  // Terminate the program to indicate the end of the game.
+    }
+}
+
+// Updates the building process for both players, reducing the build time and
+// creating a new entity upon completion if the build time reaches zero.
+void updateBuilding()
+{
+	if (playerIsBuilding.first)
+	{
+		playersBuildTime.first = playersBuildTime.first - 1;
+
+		if (playersBuildTime.first == 0)
+		{
+			std::string newEntity = std::string(1, basePlayer1IDandCharType.second) + " "
+				+ std::string(1, playersBuildingEntityType.first) + " "
+				+ std::to_string(creatorID()) + " "
+				+ std::to_string(basePlayer1Position.first) + " "
+				+ std::to_string(basePlayer1Position.second) + " "
+				+ std::to_string(entityBirthHealth[playersBuildingEntityType.first]);
+
+			addNewEntityToStatus(newEntity);
+			changeBuildStatus(basePlayer1IDandCharType.first, '0');
+	
+			playerIsBuilding.first = false;
+			playersBuildTime.first = 0;
+			playersBuildingEntityType.first = '0';
+		}
+	}
+
+	if (playerIsBuilding.second)
+	{
+		playersBuildTime.second = playersBuildTime.second - 1;
+
+		if (playersBuildTime.second == 0)
+		{
+			std::string newEntity = std::string(1, basePlayer2IDandCharType.second) + " "
+				+ std::string(1, playersBuildingEntityType.second) + " "
+				+ std::to_string(creatorID()) + " "
+				+ std::to_string(basePlayer2Position.first) + " "
+				+ std::to_string(basePlayer2Position.second) + " "
+				+ std::to_string(entityBirthHealth[playersBuildingEntityType.second]);
+
+			addNewEntityToStatus(newEntity);
+			changeBuildStatus(basePlayer2IDandCharType.first, '0');
+			
+			playerIsBuilding.second = false;
+			playersBuildTime.second = 0;
+			playersBuildingEntityType.second = '0';
+		}
+	}
+}
+
+// Rewrites the gold line in the status file to change the player's gold value.
+// Takes the new gold value as an argument and modifies the status file accordingly.
+void rewriteStatusToOppositePlayer(int goldLineToChange)
+{
+	std::ifstream inputFile(status);
+	std::vector<std::string> lines;
+
+	if (!inputFile.is_open())
+	{
+		std::cerr << "Could not open the file." << std::endl;
+		return exit(0);
+	}
+
+	// Wczytanie linii z pliku do wektora
+	std::string line;
+	while (getline(inputFile, line))
+	{
+		int goldToChange;
+		std::istringstream iss(line);
+
+
+		if (iss >> goldToChange)
+		{
+			std::string goldLine = std::to_string(goldLineToChange);
+			lines.push_back(goldLine);
+		}
+
+		else
+		{
+			lines.push_back(line);
+		}
+
+	}
+	inputFile.close();
+
+
+
+	// Zapisanie zmodyfikowanych linii z powrotem do pliku
+	std::ofstream outputFile(status);
+	if (!outputFile.is_open())
+	{
+		std::cerr << "Could not open the output file." << std::endl;
+		exit(0);
+	}
+
+	for (const std::string& line : lines)
+	{
+		outputFile << line << std::endl;
+	}
+	outputFile.close();
+}
+
+// Generates a new unique ID for a newly created unit or entity.
+// The function ensures that the generated ID is not already occupied by another entity.
+// Returns the newly generated ID.
 int creatorID()
 {
 	int newID = 0;
@@ -543,75 +695,32 @@ int creatorID()
 	return newID;
 }
 
-void workerInMines(int whichPlayerTakesTurn)
-{
-	if (whichPlayerTakesTurn == 1 && mines.size()!=0)
-	{
-		for (const auto& unit : entitiesPlayer1)
-		{
-			if (unit.second->entityClass == 'W')
-			{
-				for (const auto& minesPosition : mines)
-				{
-					if (unit.second->posX == minesPosition.first && unit.second->posY == minesPosition.second)
-					{
-						bases.first.gold += 50;
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	else 
-	{
-		for (const auto& unit : entitiesPlayer2)
-		{
-			if (unit.second->entityClass == 'W')
-			{
-				for (const auto& minesPosition : mines)
-				{
-					if (unit.second->posX == minesPosition.first && unit.second->posY == minesPosition.second)
-					{
-						bases.second.gold += 50;
-						break;
-					}
-				}
-			}
-		}
-	}
-}
-
-void cleanMemory()
-{
-	for (const auto& clean : entitiesPlayer1)
-	{
-		delete clean.second;
-	}
-
-	for (const auto& clean : entitiesPlayer2)
-	{
-		delete clean.second;
-	}
-
-}
 
 void allActions(int whichPlayerTakesTurn)
 {
 	readOrders();
 	cleanOrdersOrStatus(rozkazy);
 	updateBuilding();
-	workerInMines(whichPlayerTakesTurn);
-	rewriteStatusToOppositePlayer(whichPlayerTakesTurn);
+
+	if (whichPlayerTakesTurn == 1)
+	{
+		rewriteStatusToOppositePlayer(goldPlayer2);
+	}
+	else
+	{
+		rewriteStatusToOppositePlayer(goldPlayer1);
+	}
+
 	checkWin();
 }
 
+// Executes all actions for a player's turn, such as reading and processing orders,
+// updating building progress, rewriting gold values in the status file, and checking for a win condition.
+// Takes the player number whose turn it is as an argument.
 void checkWinAfterTurnsEnd()
 {
-	cleanMemory();
-
 	std::ifstream statusFile(status);
-	std::string line;
+    std::string line;
 
 	int numberOfEnemyOneUnits = 0;
 	int numberOfEnemyTwoUnits = 0;
@@ -644,6 +753,8 @@ void checkWinAfterTurnsEnd()
 }
 
 
+
+
 int main()
 {
 	int turnCounter = 0;
@@ -658,17 +769,14 @@ int main()
 
 	while (turnCounter < MAX_TURNS)
 	{
-		std::cout << "ruch plaeyr 1\n";
+		std::cout << "RUCH PLAYER 1\n";
 		system(commandPlayer1.c_str()); //odpalenie tury dla gracza pierwszego   
-		allActions(2);
-
-		std::cout << "ruch plaeyr 2\n";
-		system(commandPlayer2.c_str()); //odpalenie tury dla gracza drugiego 
 		allActions(1);
-
+		system(commandPlayer2.c_str()); //odpalenie tury dla gracza drugiego 
+		std::cout << "RUCH PLAYER 2\n";
+		allActions(2);
 		turnCounter++;
 	}
-
 
 	checkWinAfterTurnsEnd();
 
