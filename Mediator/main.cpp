@@ -10,10 +10,10 @@
 const int MAX_TURNS = 100;
 long startedGold = 2000;
 
-std::string program = "C:\\Users\\marci\\OneDrive\\Pulpit\\c++\\Player\\x64\\Debug\\Player.exe";
-std::string mapa = "C:\\Users\\marci\\OneDrive\\Pulpit\\mapa.txt";
-std::string status = "C:\\Users\\marci\\OneDrive\\Pulpit\\status.txt";
-std::string rozkazy = "C:\\Users\\marci\\OneDrive\\Pulpit\\rozkazy.txt";
+std::string program = "DO UZUPELNIENIA";
+std::string mapa = "DO UZUPELNIENIA";
+std::string status = "DO UZUPELNIENIA";
+std::string rozkazy = "DO UZUPELNIENIA";
 std::string player1 = "1"; //gracz pierwszy
 std::string player2 = "2"; //gracz drugi
 
@@ -217,7 +217,7 @@ void generateFirstStatus()
 
 	if (!outputFile)
 	{
-		std::cerr << "Nie mo¿na otworzyæ pliku." << std::endl;
+		std::cerr << "Nie moÂ¿na otworzyÃ¦ pliku." << std::endl;
 		exit(0);
 	}
 
@@ -230,14 +230,14 @@ void generateFirstStatus()
 
 void cleanOrdersOrStatus(const std::string& file)
 {
-	std::ofstream outputFile(file, std::ios::trunc); // Otwórz plik w trybie wyczyszczenia
+	std::ofstream outputFile(file, std::ios::trunc); // OtwÃ³rz plik w trybie wyczyszczenia
 
 	if (!outputFile.is_open())
 	{
 		std::cerr << "Could not open the file." << std::endl;
 	}
 
-	// Plik jest otwarty w trybie wyczyszczenia, wiêc zawartoœæ zostanie usuniêta
+	// Plik jest otwarty w trybie wyczyszczenia, wiÃªc zawartoÅ“Ã¦ zostanie usuniÃªta
 
 	outputFile.close();
 }
