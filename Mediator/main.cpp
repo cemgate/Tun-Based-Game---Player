@@ -264,7 +264,6 @@ void readOrders()
 
 	while (std::getline(ordersFile, line))
 	{
-		std::cout << "rozkaz -> " << line << "\n";
 		std::istringstream issMove(line);
 		std::istringstream issBuyBuild(line);
 		std::istringstream  issAttack(line);
