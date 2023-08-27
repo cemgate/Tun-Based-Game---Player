@@ -18,7 +18,7 @@ void Game::loadMap()
 
 	while (std::getline(inputFile, line))
 	{
-
+                line.pop_back();
 		this->map.push_back({}); // Add an empty vector to our vector of vectors
 
 		for (char c : line)
