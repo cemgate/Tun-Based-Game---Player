@@ -1,4 +1,5 @@
 # Jak zbudować xdxd
+DO TESTOWANIA JEDYNIE Z MEDIATOREM PODANYM W TYM REPOZYORIUM
 
 Przed samym zbudowaniem prosilbym o zmienie paru linijek w kodzie w pliku main.cpp w folderze Mediator. (linijka 13-18)
 
